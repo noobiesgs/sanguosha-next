@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Noobie.SanGuoSha.Server": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

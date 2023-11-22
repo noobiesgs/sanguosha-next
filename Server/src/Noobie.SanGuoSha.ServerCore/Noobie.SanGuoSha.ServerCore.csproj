@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>ServerCore</AssemblyName>
+		<InjectioName>SanGuoSha</InjectioName>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Noobie.SanGuoSha.Core\Noobie.SanGuoSha.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<CompilerVisibleProperty Include="InjectioName" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="ILLink.Descriptors.xml">
+			<LogicalName>ILLink.Descriptors.xml</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoConstructor" Version="4.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Injectio.Keyed.Service" Version="2.7.2" />
+	</ItemGroup>
+
+</Project>
