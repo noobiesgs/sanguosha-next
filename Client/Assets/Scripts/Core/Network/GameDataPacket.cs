@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace Noobie.SanGuoSha.Core.Network
+namespace Noobie.SanGuoSha.Network
 {
     [MemoryPackable]
     [MemoryPackUnion(10000, typeof(GameResponse))]

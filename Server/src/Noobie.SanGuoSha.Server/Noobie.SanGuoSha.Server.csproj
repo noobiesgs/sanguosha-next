@@ -9,6 +9,7 @@
 		<InjectioName>HostedServices</InjectioName>
 		<IsAotCompatible>true</IsAotCompatible>
 		<ApplicationIcon>ICON.ico</ApplicationIcon>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AutoConstructor" Version="4.1.1">
+		<PackageReference Include="AutoConstructor" Version="5.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

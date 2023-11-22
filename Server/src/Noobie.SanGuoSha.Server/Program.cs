@@ -1,7 +1,10 @@
-﻿var builder = WebApplication.CreateSlimBuilder(args);
+﻿using Noobie.SanGuoSha;
+
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddSanGuoSha();
 builder.Services.AddHostedServices();
+
 builder.Logging.ClearProviders();
 builder.Logging.AddColorConsole();
 

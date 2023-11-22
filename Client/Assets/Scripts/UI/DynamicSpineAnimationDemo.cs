@@ -37,14 +37,9 @@ namespace Noobie.SanGuoSha.UI
             await request.SendWebRequest();
             if (request.responseCode != (int)HttpStatusCode.OK) return;
 
-            var skeleton = new TextAsset
-            {
-                name = "XingXiang.skel"
-            };
-
             var material = Resources.Load<Material>("UI/SpineSkeletonPropertySource");
             var saa = SpineAtlasAsset.CreateRuntimeInstance(atlas, new[] { texture }, material, true);
-            var sda = SkeletonDataAsset.CreateRuntimeInstance(skeleton, saa, false);
+            var sda = SkeletonDataAsset.CreateRuntimeInstance(new TextAsset { name = "XingXiang.skel" }, saa, false);
             sda.SetOverwriteBinaryData(request.downloadHandler.data);
             sda.GetSkeletonData(false);
 

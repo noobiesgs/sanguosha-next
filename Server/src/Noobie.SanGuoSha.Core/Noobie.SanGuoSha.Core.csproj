@@ -7,11 +7,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="..\..\..\Client\Assets\Scripts\Core\**\*.cs"  Link="%(RecursiveDir)%(FileName)%(Extension)"/>
+		<Compile Include="..\..\..\Client\Assets\Scripts\Core\**\*.cs" Link="%(RecursiveDir)%(FileName)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
+		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>
