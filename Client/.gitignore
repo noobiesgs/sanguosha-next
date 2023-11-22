@@ -88,4 +88,4 @@ InitCodeMarker
 .idea/**/shelf
 /output
 
-Assets/StreamingAssets/Res/Skins/**/*
+Assets/StreamingAssets/Skins/**/*
