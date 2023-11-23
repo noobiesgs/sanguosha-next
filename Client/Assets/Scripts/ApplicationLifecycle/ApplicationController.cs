@@ -3,11 +3,17 @@ using System;
 using JetBrains.Annotations;
 using MemoryPack;
 using MemoryPack.Formatters;
+#if !UNITY_EDITOR
+using Microsoft.Extensions.Logging;
+#endif
 using Noobie.SanGuoSha.LocalEventBus;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
 using VContainer.Unity;
+using Logger = Microsoft.Extensions.Logging.Logger;
+using Noobie.SanGuoSha.Actions;
+using Noobie.SanGuoSha.Games;
 
 namespace Noobie.SanGuoSha.ApplicationLifecycle
 {
@@ -16,7 +22,7 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
         [SerializeField]
         private UpdateRunner _updateRunner;
 
-        [CanBeNull] 
+        [CanBeNull]
         private IDisposable _subscriptions;
 
         protected override void Configure(IContainerBuilder builder)
@@ -26,7 +32,13 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
             MemoryPackFormatterProvider.Register(new MemoryPoolFormatter<byte>());
 
             builder.RegisterInstance(new MessageChannel<QuitApplicationMessage>()).AsImplementedInterfaces();
-
+#if UNITY_EDITOR
+            builder.RegisterInstance(new Logger()).AsImplementedInterfaces();
+#else
+            builder.RegisterInstance(new NullLogger()).AsImplementedInterfaces();
+#endif
+            builder.Register<GameActionScheduler>(Lifetime.Transient);
+            builder.Register<Game>(Lifetime.Scoped);
             builder.RegisterComponent(_updateRunner);
         }
 
