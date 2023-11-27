@@ -1,7 +1,7 @@
 ﻿using TouchSocketSlim.Core;
 using TouchSocketSlim.Sockets;
 
-namespace Assets.Scripts.Network
+namespace Noobie.SanGuoSha.Network
 {
     public class SanGuoShaTcpClient : TcpClient
     {
