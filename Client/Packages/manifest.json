@@ -1,9 +1,10 @@
 {
   "dependencies": {
+    "com.cysharp.memorypack": "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack",
     "com.cysharp.unitask": "2.5.0",
     "com.esotericsoftware.spine.spine-csharp": "https://github.com/noobiesgs/spine-runtimes.git?path=spine-csharp/src#3.8",
     "com.esotericsoftware.spine.spine-unity": "https://github.com/noobiesgs/spine-runtimes.git?path=spine-unity/Assets/Spine#3.8",
-    "com.cysharp.memorypack": "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack",
+    "com.noobiesgs.touchsocket.slim": "https://github.com/noobiemir/TouchSocketSlim.git?path=Unity/TouchSocketSlim/Assets",
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.feature.2d": "2.0.0",
     "com.unity.ide.rider": "3.0.25",

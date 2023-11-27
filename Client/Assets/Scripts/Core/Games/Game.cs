@@ -42,7 +42,7 @@ namespace Noobie.SanGuoSha.Games
 
             foreach (var t in triggers)
             {
-                ActionScheduler.Schedule(t.Run(gameEvent, args), gameEvent);
+                ActionScheduler.Schedule(t, gameEvent, args);
             }
 
             return ActionState.Commit;
@@ -177,6 +177,8 @@ namespace Noobie.SanGuoSha.Games
 
         private class ReduceDamageToZeroTrigger : Trigger
         {
+            public override string Name => "ReduceDamageToZero";
+
             public override IEnumerator<ActionState> Run(GameEvent gameEvent, GameEventArgs gameEventArgs)
             {
                 var damageArgs = (DamageEventArgs)gameEventArgs;
@@ -198,18 +200,20 @@ namespace Noobie.SanGuoSha.Games
 
         private class PreventDamageTrigger : Trigger
         {
+            public override string Name => "PreventDamage";
+
             public override IEnumerator<ActionState> Run(GameEvent gameEvent, GameEventArgs gameEventArgs)
             {
-                gameEventArgs.Game.Logger.LogInformation("Prevent Damage");
                 yield return ActionState.AbortParent;
             }
         }
 
         private class JueQingSkillTrigger : Trigger
         {
+            public override string Name => "JueQing";
+
             public override IEnumerator<ActionState> Run(GameEvent gameEvent, GameEventArgs gameEventArgs)
             {
-                gameEventArgs.Game.Logger.LogInformation("JueQing trigger");
                 yield return ActionState.AbortParents(2);
                 yield return gameEventArgs.Game.LoseHealth(gameEventArgs.Targets[0], ((DamageEventArgs)gameEventArgs).Magnitude);
             }

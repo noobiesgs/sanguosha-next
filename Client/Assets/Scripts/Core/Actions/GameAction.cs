@@ -22,7 +22,8 @@ namespace Noobie.SanGuoSha.Actions
             _abortedSubActions = new List<string>();
         }
 
-        public GameAction(IEnumerator<ActionState> routine, GameEvent gameEvent, GameAction? parent = null, bool interruptible = true) : this(routine, gameEvent.Name, parent, interruptible)
+        public GameAction(Trigger trigger, GameEvent gameEvent, GameEventArgs args, GameAction? parent = null, bool interruptible = true)
+            : this(trigger.Run(gameEvent, args), $"{trigger.Name}({gameEvent.Name})", parent, interruptible)
         {
             GameEvent = gameEvent ?? throw new ArgumentNullException(nameof(gameEvent));
         }

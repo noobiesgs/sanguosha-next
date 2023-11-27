@@ -39,9 +39,9 @@ namespace Noobie.SanGuoSha.Actions
             CurrentAction!.SubActions.Enqueue(action);
         }
 
-        internal void Schedule(IEnumerator<ActionState> routine, GameEvent gameEvent, bool interruptible = true)
+        internal void Schedule(Trigger trigger, GameEvent gameEvent, GameEventArgs args, bool interruptible = true)
         {
-            var action = new GameAction(routine, gameEvent, CurrentAction, interruptible);
+            var action = new GameAction(trigger, gameEvent, args, CurrentAction, interruptible);
             CurrentAction!.SubActions.Enqueue(action);
         }
 
@@ -57,7 +57,7 @@ namespace Noobie.SanGuoSha.Actions
         {
             if (CurrentAction?.IsCompleted != false)
             {
-                CurrentAction = new GameAction(rootTrigger.Run(gameEvent, args), gameEvent, null, false);
+                CurrentAction = new GameAction(rootTrigger, gameEvent, args, null, false);
                 return RunAsync();
             }
 

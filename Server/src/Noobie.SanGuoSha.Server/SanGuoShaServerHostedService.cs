@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Noobie.SanGuoSha.Games;
 using Noobie.SanGuoSha.Network;
-using System.Net;
 
 namespace Noobie.SanGuoSha;
 
@@ -9,16 +8,16 @@ public partial class SanGuoShaServerHostedService : IHostedService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<SanGuoShaServerHostedService> _logger;
-    private readonly SanGuoShaServer _server;
+    private readonly SanGuoShaTcpServer _server;
+    private readonly Game _game;
 
-    [AutoConstructorInject("options.Value", "options", typeof(IOptions<ServerOptions>))]
-    private readonly ServerOptions _serverOptions;
-
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _server.Start(new IPEndPoint(IPAddress.Parse(_serverOptions.ServerIp), _serverOptions.ServerPort));
+        _server.Start();
         _logger.LogInformation("Web server for ui started, listening on: {endpoint}", _configuration["Kestrel:Endpoints:Http:Url"] ?? "http://localhost:5000");
-        return Task.CompletedTask;
+
+        _game.InitTriggers();
+        await _game.RunAsync();
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

@@ -14,6 +14,7 @@ using VContainer.Unity;
 using Logger = Microsoft.Extensions.Logging.Logger;
 using Noobie.SanGuoSha.Actions;
 using Noobie.SanGuoSha.Games;
+using TouchSocketSlim.Sockets;
 
 namespace Noobie.SanGuoSha.ApplicationLifecycle
 {

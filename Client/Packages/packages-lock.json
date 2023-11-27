@@ -30,6 +30,13 @@
       },
       "hash": "f28075dda902ae788f34e9624417088e9f1036a2"
     },
+    "com.noobiesgs.touchsocket.slim": {
+      "version": "https://github.com/noobiemir/TouchSocketSlim.git?path=Unity/TouchSocketSlim/Assets",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c15d671037ecc0c4d45cd768696d44bc80140419"
+    },
     "com.unity.2d.animation": {
       "version": "9.0.4",
       "depth": 1,
