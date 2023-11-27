@@ -7,7 +7,7 @@ using TouchSocketSlim.Sockets;
 namespace Noobie.SanGuoSha.Network;
 
 [RegisterSingleton]
-public class SanGuoShaTcpServer : TcpService
+public class SanGuoShaTcpServer : TcpService<SanGuoShaTcpClient>
 {
     private readonly ILogger _logger;
 
@@ -22,19 +22,24 @@ public class SanGuoShaTcpServer : TcpService
         _logger = logger;
     }
 
-    private void OnClientDisconnected(SocketClient client, DisconnectEventArgs e)
+    private void OnClientDisconnected(SanGuoShaTcpClient client, DisconnectEventArgs e)
     {
 
     }
 
-    private void OnClientConnected(SocketClient client, ConnectedEventArgs e)
+    private void OnClientConnected(SanGuoShaTcpClient client, ConnectedEventArgs e)
     {
 
     }
 
-    private void OnClientReceived(SocketClient client, byte[] buffer, int offset, int length)
+    private void OnClientReceived(SanGuoShaTcpClient client, byte[] buffer, int offset, int length)
     {
 
+    }
+
+    protected override SanGuoShaTcpClient CreateSocketClient()
+    {
+        return new SanGuoShaTcpClient();
     }
 
     public override void Start()
