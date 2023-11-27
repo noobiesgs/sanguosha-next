@@ -18,11 +18,11 @@ public class SanGuoShaTcpServer : TcpService
     {
         Received = OnClientReceived;
         Connected = OnClientConnected;
-        Disconnected = OnClientDisConnected;
+        Disconnected = OnClientDisconnected;
         _logger = logger;
     }
 
-    private void OnClientDisConnected(SocketClient client, DisconnectEventArgs e)
+    private void OnClientDisconnected(SocketClient client, DisconnectEventArgs e)
     {
 
     }
