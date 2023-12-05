@@ -1,11 +1,5 @@
 ﻿<linker>
-	<!--<assembly fullname="Shared">
-		<type fullname="Daboluo.Mir2.ClientPackets.*" />
-		<type fullname="Daboluo.Mir2.ServerPackets.*" />
-		<type fullname="Daboluo.Mir2.Packet" />
+	<assembly fullname="Core">
+		<type fullname="Noobie.SanGuoSha.Network.*" />
 	</assembly>
-	<assembly fullname="ServerCore">
-		<type fullname="Daboluo.Mir2.MirScripts.WrapperGenConfig" />
-		<type fullname="Daboluo.Mir2.MirScripts.ScriptLoader" />
-	</assembly>-->
 </linker>

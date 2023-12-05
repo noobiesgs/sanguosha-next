@@ -7,7 +7,10 @@ namespace Microsoft.Extensions.Logging
     public interface ILogger
     {
         void LogInformation(string? message, params object?[] args);
+
         void LogDebug(string? message, params object?[] args);
+
+        void LogError(string? message, params object?[] args);
     }
 
     public class NullLogger : ILogger
@@ -15,6 +18,7 @@ namespace Microsoft.Extensions.Logging
         public void LogInformation(string? message, params object?[] args) { }
 
         public void LogDebug(string? message, params object?[] args) { }
+        public void LogError(string? message, params object?[] args) { }
     }
 
     public class Logger : ILogger
@@ -35,6 +39,15 @@ namespace Microsoft.Extensions.Logging
                 return;
             }
             Debug.Log(string.Format(message, args));
+        }
+
+        public void LogError(string? message, params object?[] args)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+            Debug.LogError(string.Format(message, args));
         }
     }
 }

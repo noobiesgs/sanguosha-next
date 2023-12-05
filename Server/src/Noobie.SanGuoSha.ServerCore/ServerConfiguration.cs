@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Noobie.SanGuoSha.Actions;
 using Noobie.SanGuoSha.Games;
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 
 namespace Noobie.SanGuoSha;
 
@@ -16,6 +17,7 @@ internal class ServerConfiguration
         MemoryPackFormatterProvider.Register(new MemoryPoolFormatter<byte>());
 
         services.AddTransient<GameActionScheduler>();
+        services.AddSingleton<RecyclableMemoryStreamManager>();
         services.AddTransient<Game>();
         services.AddTransient(p => p.GetRequiredService<ILoggerFactory>().CreateLogger("SanGuoSha"));
     }

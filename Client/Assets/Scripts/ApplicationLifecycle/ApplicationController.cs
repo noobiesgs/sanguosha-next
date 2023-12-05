@@ -13,8 +13,10 @@ using VContainer;
 using VContainer.Unity;
 using Logger = Microsoft.Extensions.Logging.Logger;
 using Noobie.SanGuoSha.Actions;
+using Noobie.SanGuoSha.GamePlay;
 using Noobie.SanGuoSha.Games;
-using TouchSocketSlim.Sockets;
+using Noobie.SanGuoSha.Lobby;
+using Noobie.SanGuoSha.Settings;
 
 namespace Noobie.SanGuoSha.ApplicationLifecycle
 {
@@ -22,6 +24,8 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
     {
         [SerializeField]
         private UpdateRunner _updateRunner;
+        [SerializeField]
+        private AudioMixerConfigurator _audioMixerConfigurator;
 
         [CanBeNull]
         private IDisposable _subscriptions;
@@ -29,6 +33,8 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
+            builder.RegisterComponent(_updateRunner);
+            builder.RegisterComponent(_audioMixerConfigurator);
 
             MemoryPackFormatterProvider.Register(new MemoryPoolFormatter<byte>());
 
@@ -40,11 +46,13 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
 #endif
             builder.Register<GameActionScheduler>(Lifetime.Transient);
             builder.Register<Game>(Lifetime.Scoped);
-            builder.RegisterComponent(_updateRunner);
+            builder.Register<GameSettingsManager>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<LobbyServiceFacade>().AsSelf();
         }
 
         private void Start()
         {
+            Container.Resolve<GameSettingsManager>().Load();
             var quitApplicationSub = Container.Resolve<ISubscriber<QuitApplicationMessage>>();
 
             var subHandles = new DisposableGroup();
@@ -55,8 +63,9 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
 
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(_updateRunner.gameObject);
-            Application.targetFrameRate = 60;
+            DontDestroyOnLoad(_audioMixerConfigurator.gameObject);
 
+            Application.targetFrameRate = 60;
             SceneManager.LoadScene("MainMenu");
         }
 

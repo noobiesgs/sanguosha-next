@@ -1,0 +1,19 @@
+{
+    "name": "AllPlatformsSave.Editor",
+    "rootNamespace": "",
+    "references": [
+        "AllPlatformsSave.Common.Editor",
+        "AllPlatformsSave"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

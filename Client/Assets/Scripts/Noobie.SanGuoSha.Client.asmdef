@@ -8,7 +8,8 @@
         "UniTask",
         "VContainer",
         "MemoryPack",
-        "TouchSocketSlim"
+        "TouchSocketSlim",
+        "AllPlatformsSave"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
