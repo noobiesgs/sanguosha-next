@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Noobie.SanGuoSha.Infrastructure
 {
-    internal class UpdateRunner : MonoBehaviour
+    public class UpdateRunner : MonoBehaviour
     {
         class SubscriberData
         {

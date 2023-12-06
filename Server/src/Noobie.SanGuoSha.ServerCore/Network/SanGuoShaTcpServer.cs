@@ -36,11 +36,12 @@ public class SanGuoShaTcpServer : TcpService<SanGuoShaTcpClient>
     private void OnClientDisconnected(SanGuoShaTcpClient client, DisconnectEventArgs e)
     {
         _lobbyService.ClientDisconnected(client);
+        _logger.LogInformation("Client disconnected: {id}-{ip}", client.Id, client.Ip);
     }
 
     private void OnClientConnected(SanGuoShaTcpClient client, ConnectedEventArgs e)
     {
-        _logger.LogInformation("Client connected: {ip}", client.Ip);
+        _logger.LogInformation("Client connected: {id}-{ip}", client.Id, client.Ip);
     }
 
     private void OnClientReceived(SanGuoShaTcpClient client, byte[] buffer, int offset, int length)

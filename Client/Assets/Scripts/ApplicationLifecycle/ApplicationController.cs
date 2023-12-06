@@ -30,6 +30,8 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
         [CanBeNull]
         private IDisposable _subscriptions;
 
+        private LobbyServiceFacade _lobbyService;
+
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
@@ -53,8 +55,9 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
         private void Start()
         {
             Container.Resolve<GameSettingsManager>().Load();
-            var quitApplicationSub = Container.Resolve<ISubscriber<QuitApplicationMessage>>();
+            _lobbyService = Container.Resolve<LobbyServiceFacade>();
 
+            var quitApplicationSub = Container.Resolve<ISubscriber<QuitApplicationMessage>>();
             var subHandles = new DisposableGroup();
             subHandles.Add(quitApplicationSub.Subscribe(QuitGame));
             _subscriptions = subHandles;
@@ -77,6 +80,7 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
 
         private bool OnWantToQuit()
         {
+            _lobbyService?.Disconnect();
             return true;
         }
 

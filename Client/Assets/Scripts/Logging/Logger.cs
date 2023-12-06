@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using UnityEngine;
 
 namespace Microsoft.Extensions.Logging
@@ -8,17 +9,22 @@ namespace Microsoft.Extensions.Logging
     {
         void LogInformation(string? message, params object?[] args);
 
+        void LogWarning(string? message, params object?[] args);
+
         void LogDebug(string? message, params object?[] args);
 
         void LogError(string? message, params object?[] args);
+
+        void LogException(Exception exception);
     }
 
     public class NullLogger : ILogger
     {
         public void LogInformation(string? message, params object?[] args) { }
-
+        public void LogWarning(string? message, params object?[] args) { }
         public void LogDebug(string? message, params object?[] args) { }
         public void LogError(string? message, params object?[] args) { }
+        public void LogException(Exception exception) { }
     }
 
     public class Logger : ILogger
@@ -29,7 +35,16 @@ namespace Microsoft.Extensions.Logging
             {
                 return;
             }
-            Debug.Log(string.Format(message, args));
+            Debug.LogFormat(message, args);
+        }
+
+        public void LogWarning(string? message, params object?[] args)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+            Debug.LogWarningFormat(message, args);
         }
 
         public void LogDebug(string? message, params object?[] args)
@@ -38,7 +53,7 @@ namespace Microsoft.Extensions.Logging
             {
                 return;
             }
-            Debug.Log(string.Format(message, args));
+            Debug.LogFormat(message, args);
         }
 
         public void LogError(string? message, params object?[] args)
@@ -47,7 +62,16 @@ namespace Microsoft.Extensions.Logging
             {
                 return;
             }
-            Debug.LogError(string.Format(message, args));
+            Debug.LogErrorFormat(message, args);
+        }
+
+        public void LogException(Exception? exception)
+        {
+            if (exception == null)
+            {
+                return;
+            }
+            Debug.LogException(exception);
         }
     }
 }

@@ -13,18 +13,16 @@ public partial class SanGuoShaServerHostedService : IHostedService
     private readonly LobbyPacketReceivingThread _receivingThread;
     private readonly SanGuoShaTcpServer _server;
     private readonly SendingThread _sendingThread;
-    private readonly Game _game;
     private readonly DatabaseService _database;
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _database.Initialize();
         _server.Start();
         _logger.LogInformation("Web server for ui started, listening on: {endpoint}", _configuration["Kestrel:Endpoints:Http:Url"] ?? "http://localhost:5000");
         _sendingThread.Start();
         _receivingThread.Start();
-        _game.InitTriggers();
-        await _game.RunAsync();
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

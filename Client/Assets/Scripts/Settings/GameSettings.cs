@@ -48,6 +48,8 @@ namespace Noobie.SanGuoSha.Settings
 #endif
             ;
 
+        private string _accountName;
+
         public string Ip
         {
             get => _ip;
@@ -58,6 +60,12 @@ namespace Noobie.SanGuoSha.Settings
         {
             get => _port;
             set => SetField(ref _port, value);
+        }
+
+        public string AccountName
+        {
+            get => _accountName;
+            set => SetField(ref _accountName, value);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
