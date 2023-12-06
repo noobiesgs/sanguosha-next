@@ -46,6 +46,9 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
 #else
             builder.RegisterInstance(new NullLogger()).AsImplementedInterfaces();
 #endif
+            builder.Register<LocalLobbyUser>(Lifetime.Singleton);
+            builder.Register<LobbyHeartbeat>(Lifetime.Singleton);
+            builder.Register<PacketsSender>(Lifetime.Singleton);
             builder.Register<GameActionScheduler>(Lifetime.Transient);
             builder.Register<Game>(Lifetime.Scoped);
             builder.Register<GameSettingsManager>(Lifetime.Singleton);

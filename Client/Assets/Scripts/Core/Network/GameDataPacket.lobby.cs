@@ -11,6 +11,7 @@ namespace Noobie.SanGuoSha.Network
     [MemoryPackUnion(30004, typeof(LoginResultPacket))]
     [MemoryPackUnion(30005, typeof(ServerDisconnectedPacket))]
     [MemoryPackUnion(30006, typeof(RegisterResultPacket))]
+    [MemoryPackUnion(30007, typeof(PingPacket))]
     public abstract partial record LobbyPacket : GameDataPacket;
 
     [MemoryPackable]
@@ -52,6 +53,9 @@ namespace Noobie.SanGuoSha.Network
             token = Token;
         }
     }
+
+    [MemoryPackable]
+    public sealed partial record PingPacket : LobbyPacket;
 
     [MemoryPackable]
     public sealed partial record AccountPacket(string Nickname, string Title, int Wins, int Losses, int Escapes, AvatarShowPacket AvatarShow);

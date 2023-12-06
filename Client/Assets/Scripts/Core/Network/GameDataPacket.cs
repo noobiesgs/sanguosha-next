@@ -16,6 +16,7 @@ namespace Noobie.SanGuoSha.Network
     [MemoryPackUnion(30004, typeof(LoginResultPacket))]
     [MemoryPackUnion(30005, typeof(ServerDisconnectedPacket))]
     [MemoryPackUnion(30006, typeof(RegisterResultPacket))]
+    [MemoryPackUnion(30007, typeof(PingPacket))]
     public abstract partial record GameDataPacket;
 
     [MemoryPackable]

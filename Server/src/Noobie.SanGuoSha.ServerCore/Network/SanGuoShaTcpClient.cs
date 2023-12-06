@@ -37,7 +37,8 @@ public partial class SanGuoShaTcpClient : SocketClient
     {
         ThrowIfDisposed();
         using var memory = (RecyclableMemoryStream)_memoryStreamManager.GetStream();
-        StreamingSerializer.Serialize(memory, 1, new[] { packet });
+        var packets = new List<GameDataPacket> { packet };
+        StreamingSerializer.Serialize(memory, packets.Count, packets);
         Send(memory.GetReadOnlySequence());
     }
 }

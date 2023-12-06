@@ -3,47 +3,54 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Noobie.SanGuoSha.Infrastructure;
 using Noobie.SanGuoSha.Network;
 using VContainer.Unity;
 
 namespace Noobie.SanGuoSha.Lobby
 {
-    public delegate void ClientDisconnectedEventHandler(SanGuoShaTcpClient connection);
-
     public class LobbyServiceFacade : IDisposable, IStartable
     {
-        private readonly LifetimeScope _parentScope;
-        private readonly UpdateRunner _updateRunner;
+        private readonly LobbyHeartbeat _lobbyHeartbeat;
+        private readonly PacketsSender _packetsSender;
         private readonly ILogger _logger;
-        private SanGuoShaTcpClient? _connection;
+        private readonly LocalLobbyUser _user;
 
-        public LobbyServiceFacade(LifetimeScope parentScope, UpdateRunner updateRunner, ILogger logger)
+        public LobbyServiceFacade(
+            ILogger logger,
+            LocalLobbyUser user,
+            LobbyHeartbeat lobbyHeartbeat,
+            PacketsSender packetsSender)
         {
-            _parentScope = parentScope;
-            _updateRunner = updateRunner;
             _logger = logger;
+            _user = user;
+            _lobbyHeartbeat = lobbyHeartbeat;
+            _packetsSender = packetsSender;
         }
-
-        private LifetimeScope? _serviceScope;
 
         public void Dispose()
         {
-            _serviceScope?.Dispose();
+            if (_user.IsOnline)
+            {
+                _user.Connection?.Close("Lobby dispose");
+            }
+
+            _user.DisConnected -= UserOnDisConnected;
         }
-
-        public SanGuoShaTcpClient? Connection => _connection;
-
-        public event ClientDisconnectedEventHandler? ClientDisconnected;
 
         public void Start()
         {
-            _serviceScope = _parentScope.CreateChild();
+            _user.DisConnected += UserOnDisConnected;
+        }
+
+        private void UserOnDisConnected(object sender, EventArgs e)
+        {
+            _lobbyHeartbeat.EndTracking();
+            _packetsSender.EndSend();
         }
 
         public async UniTask<bool> ConnectAsync(string host, int port)
         {
-            if (_connection != null)
+            if (_user.IsOnline)
             {
                 return true;
             }
@@ -52,8 +59,9 @@ namespace Noobie.SanGuoSha.Lobby
             try
             {
                 await client.ConnectAsync(15 * 1000);
-                client.Disconnected += ClientOnDisconnected;
-                _connection = client;
+                _lobbyHeartbeat.BeginTracking();
+                _packetsSender.BeginSend();
+                _user.Connection = client;
                 return true;
             }
             catch (Exception ex)
@@ -66,24 +74,12 @@ namespace Noobie.SanGuoSha.Lobby
 
         public void Disconnect()
         {
-            if (_connection != null)
+            if (_user.IsOnline)
             {
-                var client = _connection;
+                var client = _user.Connection!;
                 client.Close("Disconnect by lobby service");
                 client.Dispose();
             }
-        }
-
-        private void ClientOnDisconnected()
-        {
-            if (_connection == null)
-            {
-                return;
-            }
-            var client = _connection;
-            _connection.Disconnected -= ClientOnDisconnected;
-            _connection = null;
-            ClientDisconnected?.Invoke(client);
         }
     }
 }
