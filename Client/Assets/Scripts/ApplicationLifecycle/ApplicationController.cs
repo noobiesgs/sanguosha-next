@@ -14,6 +14,7 @@ using VContainer.Unity;
 using Logger = Microsoft.Extensions.Logging.Logger;
 using Noobie.SanGuoSha.Actions;
 using Noobie.SanGuoSha.GamePlay;
+using Noobie.SanGuoSha.GamePlay.UI;
 using Noobie.SanGuoSha.Games;
 using Noobie.SanGuoSha.Lobby;
 using Noobie.SanGuoSha.Settings;
@@ -26,6 +27,8 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
         private UpdateRunner _updateRunner;
         [SerializeField]
         private AudioMixerConfigurator _audioMixerConfigurator;
+        [SerializeField]
+        private PopupManager _popupManager;
 
         [CanBeNull]
         private IDisposable _subscriptions;
@@ -37,12 +40,13 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
             base.Configure(builder);
             builder.RegisterComponent(_updateRunner);
             builder.RegisterComponent(_audioMixerConfigurator);
+            builder.RegisterComponent(_popupManager);
 
             MemoryPackFormatterProvider.Register(new MemoryPoolFormatter<byte>());
 
             builder.RegisterInstance(new MessageChannel<QuitApplicationMessage>()).AsImplementedInterfaces();
             builder.RegisterInstance(new MessageChannel<ClientDisconnectedMessage>()).AsImplementedInterfaces();
-            builder.RegisterInstance(new MessageChannel<LobbyPacketReceiveMessage>()).AsImplementedInterfaces();
+            builder.RegisterInstance(new MessageChannel<LobbyPacketReceivedMessage>()).AsImplementedInterfaces();
 #if UNITY_EDITOR
             builder.RegisterInstance(new Logger()).AsImplementedInterfaces();
 #else
@@ -51,6 +55,7 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
             builder.Register<LocalLobbyUser>(Lifetime.Singleton);
             builder.Register<LobbyHeartbeat>(Lifetime.Singleton);
             builder.Register<PacketsSender>(Lifetime.Singleton);
+            builder.Register<PacketsReceiver>(Lifetime.Singleton);
             builder.Register<GameActionScheduler>(Lifetime.Transient);
             builder.Register<Game>(Lifetime.Scoped);
             builder.Register<GameSettingsManager>(Lifetime.Singleton);

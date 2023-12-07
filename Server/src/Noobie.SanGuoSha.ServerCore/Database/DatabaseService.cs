@@ -120,8 +120,11 @@ public sealed partial class DatabaseService : IDisposable
     {
         using var realm = Realm.GetInstance(_configuration);
 
+        var indexes = realm.All<DatabaseIndexesEntry>().First();
+
         realm.Write(() =>
         {
+            indexes.AccountIndex = _accountIndex;
             foreach (var kvp in _accountDic)
             {
                 if (kvp.Value.IsDirty)

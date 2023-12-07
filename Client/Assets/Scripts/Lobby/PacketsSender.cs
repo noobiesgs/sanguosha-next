@@ -19,7 +19,7 @@ namespace Noobie.SanGuoSha.Lobby
 
         public void BeginSend()
         {
-            _updateRunner.Subscribe(OnUpdate, 1f / 60);
+            _updateRunner.Subscribe(OnUpdate, 1f / 40);
         }
 
         public void EndSend()
@@ -29,13 +29,13 @@ namespace Noobie.SanGuoSha.Lobby
 
         private void OnUpdate(float _)
         {
-            if (_user.Packets.Count == 0 || !_user.IsOnline)
+            if (_user.SendingPackets.Count == 0 || !_user.IsOnline)
             {
                 return;
             }
 
             var packets = new List<GameDataPacket>();
-            while (_user.Packets.TryDequeue(out var packet))
+            while (_user.SendingPackets.TryDequeue(out var packet))
             {
                 packets.Add(packet);
             }

@@ -18,7 +18,8 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         [Inject] private LobbyServiceFacade _lobbyService;
         [Inject] private ILogger _logger;
         [Inject] private LocalLobbyUser _user;
-        [Inject] private ISubscriber<LobbyPacketReceiveMessage> _subscriber;
+        [Inject] private ISubscriber<LobbyPacketReceivedMessage> _subscriber;
+        [Inject] private PopupManager _popupManager;
 
         [SerializeField] private LoginUI _loginUI;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -31,10 +32,10 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         {
             base.Awake();
             _loginUI.LoginButtonClicked += LoginUIOnLoginButtonClicked;
-            _subscription = _subscriber.Subscribe(OnReceivePacket);
+            _subscription = _subscriber.Subscribe(OnReceivedLobbyPacket);
         }
 
-        private void OnReceivePacket(LobbyPacketReceiveMessage lobbyPacketMessage)
+        private void OnReceivedLobbyPacket(LobbyPacketReceivedMessage lobbyPacketMessage)
         {
             switch (lobbyPacketMessage.Packet)
             {
@@ -94,9 +95,13 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 case LoginStatus.Success:
                     break;
                 case LoginStatus.OutdatedVersion:
+                    _popupManager.ShowPopupPanel("客户端版本与服务器不匹配，请更新");
+                    break;
                 case LoginStatus.InvalidUserNameAndPassword:
+                    _popupManager.ShowPopupPanel("无效用户名或密码");
+                    break;
                 case LoginStatus.UnknownFailure:
-                    _logger.LogWarning("Failed to logged in: {0}", result.Status);
+                    _popupManager.ShowPopupPanel("登录失败，未知错误");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

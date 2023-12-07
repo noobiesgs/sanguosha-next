@@ -38,7 +38,7 @@ public partial class LobbyPacketReceivingThread : IDisposable
                 break;
             }
 
-            if (_packets.Count == 0)
+            if (_packets.IsEmpty)
             {
                 continue;
             }

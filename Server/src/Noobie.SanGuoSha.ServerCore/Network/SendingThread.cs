@@ -39,7 +39,7 @@ public partial class SendingThread : IDisposable
                 break;
             }
 
-            if (_sendingPackets.Count == 0)
+            if (_sendingPackets.IsEmpty)
             {
                 continue;
             }

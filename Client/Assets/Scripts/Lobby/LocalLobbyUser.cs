@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
@@ -9,19 +10,15 @@ namespace Noobie.SanGuoSha.Lobby
     public class LocalLobbyUser
     {
         private SanGuoShaTcpClient? _connection;
-        private readonly IPublisher<LobbyPacketReceiveMessage> _lobbyMessagePublisher;
         private readonly IPublisher<ClientDisconnectedMessage> _clientDisconnectedMessagePublisher;
 
         public bool IsOnline => Connection?.Online == true;
 
-        internal Queue<GameDataPacket> Packets = new();
+        internal Queue<GameDataPacket> SendingPackets = new();
+        internal ConcurrentQueue<GameDataPacket> ReceivedPackets = new(new BlockingCollection<GameDataPacket>());
 
-        public LocalLobbyUser(
-            IPublisher<LobbyPacketReceiveMessage> lobbyMessagePublisher,
-            IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher
-            )
+        public LocalLobbyUser(IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher)
         {
-            _lobbyMessagePublisher = lobbyMessagePublisher;
             _clientDisconnectedMessagePublisher = clientDisconnectedMessagePublisher;
         }
 
@@ -47,10 +44,7 @@ namespace Noobie.SanGuoSha.Lobby
 
         private void ConnectionOnReceivePacket(GameDataPacket packet)
         {
-            if (packet is LobbyPacket lobbyPacket)
-            {
-                _lobbyMessagePublisher.Publish(new LobbyPacketReceiveMessage(lobbyPacket));
-            }
+            ReceivedPackets.Enqueue(packet);
         }
 
         private void ConnectionOnDisconnected()
@@ -61,7 +55,7 @@ namespace Noobie.SanGuoSha.Lobby
 
         public void SendAsync(GameDataPacket packet)
         {
-            Packets.Enqueue(packet);
+            SendingPackets.Enqueue(packet);
         }
     }
 }
