@@ -8,34 +8,38 @@ namespace Noobie.SanGuoSha.Database;
 [RegisterSingleton, AutoConstructor]
 public sealed partial class DatabaseService : IDisposable
 {
-    private Realm? _realm;
-    private IQueryable<Account>? _accounts;
-    private DatabaseIndexes? _indexes;
     private readonly ILogger<DatabaseService> _logger;
     private readonly object _accountCreationLock = new();
     private readonly ConcurrentDictionary<string, Account> _accountDic = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Account> _accountNicknameDic = new(StringComparer.OrdinalIgnoreCase);
+    private int _accountIndex;
+    private RealmConfiguration? _configuration;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public Account? FindAccount(string accountName)
     {
-        EnsureDbInitialized();
         if (_accountDic.TryGetValue(accountName, out var account))
         {
             return account;
         }
 
-        account = _accounts!.FirstOrDefault(a => a.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
-        if (account == null)
-        {
-            return null;
-        }
-
-        _accountDic.TryAdd(accountName, account);
-        return account;
+        return null;
     }
 
     public bool TryCreateAccount(Account account)
     {
-        EnsureDbInitialized();
+        if (string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Nickname))
+        {
+            _logger.LogWarning("account name or nickname cannot be null. {@account}", account);
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(account.Password))
+        {
+            _logger.LogWarning("account password cannot be null. {@account}", account);
+            return false;
+        }
+
         if (_accountDic.ContainsKey(account.AccountName))
         {
             return false;
@@ -48,31 +52,20 @@ public sealed partial class DatabaseService : IDisposable
                 return false;
             }
 
-            if (_accounts!.Any(a => a.AccountName.Equals(account.AccountName)))
+            if (_accountNicknameDic.ContainsKey(account.Nickname))
             {
                 return false;
             }
 
-            _realm!.Write(() =>
-            {
-                account.Id = ++_indexes!.AccountIndex;
-                _realm.Add(account);
-            });
+            account.Id = ++_accountIndex;
 
-            return _accountDic.TryAdd(account.AccountName, account);
+            return _accountDic.TryAdd(account.AccountName, account) && _accountNicknameDic.TryAdd(account.Nickname, account);
         }
-    }
-
-    public void Write(Action action)
-    {
-        EnsureDbInitialized();
-        _realm!.Write(action);
     }
 
     public bool AccountExist(string accountName)
     {
-        EnsureDbInitialized();
-        return _accountDic.ContainsKey(accountName) || _accounts!.Any(a => a.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
+        return _accountDic.ContainsKey(accountName);
     }
 
     public void Initialize()
@@ -80,37 +73,69 @@ public sealed partial class DatabaseService : IDisposable
         var config = new DbConfigurationBuilder();
 
         config.SetDbFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "./sanguosha.account.db"));
-        config.WithSchema<DatabaseIndexes>();
-        config.WithSchema<Account>();
-        config.WithSchema<AvatarShow>();
+        config.WithSchema<DatabaseIndexesEntry>();
+        config.WithSchema<AccountEntry>();
+        config.WithSchema<AvatarShowEntry>();
+        _configuration = config.Build();
+        using var realm = Realm.GetInstance(_configuration);
 
-        _realm = Realm.GetInstance(config.Build());
-
-        _indexes = _realm.All<DatabaseIndexes>().FirstOrDefault();
-        if (_indexes == null)
+        var indexes = realm.All<DatabaseIndexesEntry>().FirstOrDefault();
+        if (indexes == null)
         {
-            _indexes = new DatabaseIndexes();
-            _realm.Write(() =>
+            indexes = new DatabaseIndexesEntry();
+            realm.Write(() =>
             {
-                _realm.Add(_indexes);
+                realm.Add(indexes);
             });
         }
 
-        _accounts = _realm.All<Account>();
+        _accountIndex = indexes.AccountIndex;
+
+        var accounts = realm.All<AccountEntry>();
+
+        foreach (var accountEntry in accounts)
+        {
+            var account = ObjectMapper.Map<Account>(accountEntry);
+            account.IsDirty = false;
+            _accountDic.TryAdd(account.AccountName, account);
+            _accountNicknameDic.TryAdd(account.Nickname, account);
+        }
 
         _logger.LogInformation("Database initialized");
+
+        Task.Factory.StartNew(SaveLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
-    private void EnsureDbInitialized()
+    private async Task SaveLoop()
     {
-        if (_accounts == null || _indexes == null || _realm == null)
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
+
+        while (await timer.WaitForNextTickAsync(_cancellationTokenSource.Token))
         {
-            throw new InvalidOperationException("The database has not been initialized yet。");
+            SaveToRealm();
         }
+    }
+
+    private void SaveToRealm()
+    {
+        using var realm = Realm.GetInstance(_configuration);
+
+        realm.Write(() =>
+        {
+            foreach (var kvp in _accountDic)
+            {
+                if (kvp.Value.IsDirty)
+                {
+                    realm.Add(ObjectMapper.Map<AccountEntry>(kvp.Value), true);
+                }
+            }
+        });
     }
 
     public void Dispose()
     {
-        _realm?.Dispose();
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource.Dispose();
+        SaveToRealm();
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 using VContainer.Unity;
 
@@ -14,17 +15,23 @@ namespace Noobie.SanGuoSha.Lobby
         private readonly PacketsSender _packetsSender;
         private readonly ILogger _logger;
         private readonly LocalLobbyUser _user;
+        private readonly ISubscriber<ClientDisconnectedMessage> _subscriber;
+
+        private IDisposable? _subscriptions;
 
         public LobbyServiceFacade(
             ILogger logger,
             LocalLobbyUser user,
             LobbyHeartbeat lobbyHeartbeat,
-            PacketsSender packetsSender)
+            PacketsSender packetsSender,
+            ISubscriber<ClientDisconnectedMessage> subscriber
+            )
         {
             _logger = logger;
             _user = user;
             _lobbyHeartbeat = lobbyHeartbeat;
             _packetsSender = packetsSender;
+            _subscriber = subscriber;
         }
 
         public void Dispose()
@@ -34,15 +41,15 @@ namespace Noobie.SanGuoSha.Lobby
                 _user.Connection?.Close("Lobby dispose");
             }
 
-            _user.DisConnected -= UserOnDisConnected;
+            _subscriptions?.Dispose();
         }
 
         public void Start()
         {
-            _user.DisConnected += UserOnDisConnected;
+            _subscriptions = _subscriber.Subscribe(UserOnDisConnected);
         }
 
-        private void UserOnDisConnected(object sender, EventArgs e)
+        private void UserOnDisConnected(ClientDisconnectedMessage _)
         {
             _lobbyHeartbeat.EndTracking();
             _packetsSender.EndSend();
@@ -66,10 +73,21 @@ namespace Noobie.SanGuoSha.Lobby
             }
             catch (Exception ex)
             {
-                _logger.LogException(ex);
+                _logger.LogError(ex);
                 client.Dispose();
             }
             return false;
+        }
+
+        public void Login(string accountName, string password)
+        {
+            if (!_user.IsOnline)
+            {
+                _logger.LogWarning("Client is offline.");
+                return;
+            }
+
+            _user.SendAsync(new LoginPacket(accountName, password, Misc.ProtocolVersion));
         }
 
         public void Disconnect()

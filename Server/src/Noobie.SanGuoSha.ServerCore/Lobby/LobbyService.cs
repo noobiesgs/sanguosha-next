@@ -37,6 +37,11 @@ public partial class LobbyService
         reconnectionToken = new LoginToken();
         account = null;
 
+        if (string.IsNullOrEmpty(accountName) || string.IsNullOrEmpty(password))
+        {
+            return LoginStatus.InvalidUserNameAndPassword;
+        }
+
         if (version != Misc.ProtocolVersion)
         {
             _logger.LogWarning("Client login failed with outdated protocol version: {version}, ip: {ip}", version, connection.Ip);
@@ -56,6 +61,12 @@ public partial class LobbyService
             {
                 if (player.Connection != null)
                 {
+                    if (player.Connection == connection)
+                    {
+                        _logger.LogWarning("player logged in twice? Connection ip: {ip}", player.Connection.Ip);
+                        return LoginStatus.UnknownFailure;
+                    }
+
                     _logger.LogWarning("player already logged in, kick out. Old connection ip: {ip}", player.Connection.Ip);
                     _loggedInPlayersConnectionIdMap.TryRemove(player.Connection.Id, out _);
                     player.Connection.Send(new ServerDisconnectedPacket(DisconnectReason.LoggedInOnAnotherDevice));
@@ -77,10 +88,7 @@ public partial class LobbyService
                 _loggedInPlayersConnectionIdMap.TryAdd(connection.Id, player);
             }
 
-            _dbService.Write(() =>
-            {
-                player.Account.LastIp = connection.Ip;
-            });
+            player.Account.LastIp = connection.Ip;
         }
         _logger.LogWarning("player logged in. Ip: {ip}", connection.Ip);
         return LoginStatus.Success;

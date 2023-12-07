@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Injectio.Attributes;
+using Microsoft.Extensions.Logging;
 using Noobie.SanGuoSha.Network;
 
 namespace Noobie.SanGuoSha.Lobby;
@@ -8,9 +9,10 @@ namespace Noobie.SanGuoSha.Lobby;
 public partial class LobbyPacketReceivingThread : IDisposable
 {
     private readonly MessageHandlerFactory _messageHandlerFactory;
-    private readonly SemaphoreSlim _semaphore = new(0, 1);
+    private readonly SemaphoreSlim _semaphore = new(0, int.MaxValue);
     private readonly ConcurrentQueue<ReceivedLobbyPacket> _packets = new(new BlockingCollection<ReceivedLobbyPacket>());
     private readonly CancellationTokenSource _cts = new();
+    private readonly ILogger<LobbyPacketReceivingThread> _logger;
 
     public void Received(SanGuoShaTcpClient client, LobbyPacket packet)
     {
@@ -36,10 +38,22 @@ public partial class LobbyPacketReceivingThread : IDisposable
                 break;
             }
 
+            if (_packets.Count == 0)
+            {
+                continue;
+            }
+
             while (_packets.TryDequeue(out var p))
             {
                 var handler = _messageHandlerFactory.GetMessageHandler(p.Packet);
-                handler.Handle(p.Client, p.Packet);
+                try
+                {
+                    handler.Handle(p.Client, p.Packet);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to handle message: {@message}", p.Packet);
+                }
             }
         }
     }

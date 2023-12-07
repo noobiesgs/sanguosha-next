@@ -2,7 +2,7 @@
 
 namespace Noobie.SanGuoSha.Database;
 
-public partial class DatabaseIndexes : IRealmObject
+public partial class DatabaseIndexesEntry : IRealmObject
 {
     public int AccountIndex { get; set; }
 }

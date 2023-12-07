@@ -1,9 +1,7 @@
 ﻿#nullable enable
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.IO;
+using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 
 namespace Noobie.SanGuoSha.Lobby
@@ -11,13 +9,21 @@ namespace Noobie.SanGuoSha.Lobby
     public class LocalLobbyUser
     {
         private SanGuoShaTcpClient? _connection;
+        private readonly IPublisher<LobbyPacketReceiveMessage> _lobbyMessagePublisher;
+        private readonly IPublisher<ClientDisconnectedMessage> _clientDisconnectedMessagePublisher;
 
         public bool IsOnline => Connection?.Online == true;
 
-        public event EventHandler? DisConnected;
-        public event ReceivePacketEventHandler? ReceivePacket;
+        internal Queue<GameDataPacket> Packets = new();
 
-        internal ConcurrentQueue<GameDataPacket> Packets = new(new BlockingCollection<GameDataPacket>());
+        public LocalLobbyUser(
+            IPublisher<LobbyPacketReceiveMessage> lobbyMessagePublisher,
+            IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher
+            )
+        {
+            _lobbyMessagePublisher = lobbyMessagePublisher;
+            _clientDisconnectedMessagePublisher = clientDisconnectedMessagePublisher;
+        }
 
         public SanGuoShaTcpClient? Connection
         {
@@ -41,13 +47,16 @@ namespace Noobie.SanGuoSha.Lobby
 
         private void ConnectionOnReceivePacket(GameDataPacket packet)
         {
-            ReceivePacket?.Invoke(packet);
+            if (packet is LobbyPacket lobbyPacket)
+            {
+                _lobbyMessagePublisher.Publish(new LobbyPacketReceiveMessage(lobbyPacket));
+            }
         }
 
         private void ConnectionOnDisconnected()
         {
             Connection = null;
-            DisConnected?.Invoke(this, EventArgs.Empty);
+            _clientDisconnectedMessagePublisher.Publish(new ClientDisconnectedMessage());
         }
 
         public void SendAsync(GameDataPacket packet)

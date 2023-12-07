@@ -28,7 +28,7 @@ namespace Noobie.SanGuoSha.Actions
             set
             {
                 if (_current == value) return;
-                _logger.LogDebug("Current Action: {currentAction}, Level: {level}", value?.ToString() ?? "NULL, ", value?.Level.ToString() ?? " -- ");
+                _logger.LogDebug("Current Action: {0}, Level: {1}", value?.ToString() ?? "NULL, ", value?.Level.ToString() ?? " -- ");
                 _current = value;
             }
         }

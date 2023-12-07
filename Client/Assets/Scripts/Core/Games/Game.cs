@@ -69,7 +69,7 @@ namespace Noobie.SanGuoSha.Games
                 }
 
                 args.Targets[0].Health -= args.Magnitude;
-                args.Game.Logger.LogInformation("Player Inflicted: {magnitude}", args.Magnitude);
+                args.Game.Logger.LogInformation("Player Inflicted: {0}", args.Magnitude);
 
                 yield return Emit(GameEvent.AfterHealthChanged, args);
                 yield return Emit(GameEvent.AfterDamageCaused, args);
@@ -112,7 +112,7 @@ namespace Noobie.SanGuoSha.Games
             {
                 yield return Emit(GameEvent.BeforeHealthChanged, args);
                 args.Targets[0].Health += args.Delta;
-                args.Game.Logger.LogInformation("Player lose hp: {magnitude}", -args.Delta);
+                args.Game.Logger.LogInformation("Player lose hp: {0}", -args.Delta);
                 yield return Emit(GameEvent.AfterHealthChanged, args);
             }
 
@@ -140,7 +140,7 @@ namespace Noobie.SanGuoSha.Games
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    args.Game.Logger.LogInformation("Simulate deal: {i}", i);
+                    args.Game.Logger.LogInformation("Simulate deal: {0}", i);
                     yield return ActionState.Commit;
                 }
 
@@ -163,7 +163,7 @@ namespace Noobie.SanGuoSha.Games
                 {
                     round++;
 
-                    args.Game.Logger.LogInformation("Simulate player round: {round}", round);
+                    args.Game.Logger.LogInformation("Simulate player round: {0}", round);
                     yield return ActionState.Commit;
                 }
 
@@ -171,7 +171,7 @@ namespace Noobie.SanGuoSha.Games
 
                 yield return args.Game.DoDamage(args.Game.Players[0], args.Game.Players[1], 2);
 
-                args.Game.Logger.LogInformation("Player1 Health: {health}", args.Game.Players[1].Health);
+                args.Game.Logger.LogInformation("Player1 Health: {0}", args.Game.Players[1].Health);
             }
         }
 

@@ -1,8 +1,10 @@
 ﻿#nullable enable
 
+using System;
 using Cysharp.Threading.Tasks;
 using Noobie.SanGuoSha.GamePlay.UI;
 using Noobie.SanGuoSha.Lobby;
+using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -16,9 +18,12 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         [Inject] private LobbyServiceFacade _lobbyService;
         [Inject] private ILogger _logger;
         [Inject] private LocalLobbyUser _user;
+        [Inject] private ISubscriber<LobbyPacketReceiveMessage> _subscriber;
 
         [SerializeField] private LoginUI _loginUI;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+        private IDisposable? _subscription;
 
         public override GameState ActiveState => GameState.MainMenu;
 
@@ -26,19 +31,27 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         {
             base.Awake();
             _loginUI.LoginButtonClicked += LoginUIOnLoginButtonClicked;
-            _user.ReceivePacket += UserOnReceivePacket;
+            _subscription = _subscriber.Subscribe(OnReceivePacket);
         }
 
-        private void UserOnReceivePacket(GameDataPacket packet)
+        private void OnReceivePacket(LobbyPacketReceiveMessage lobbyPacketMessage)
         {
-
+            switch (lobbyPacketMessage.Packet)
+            {
+                case LoginResultPacket p:
+                    HandleLoginResult(p);
+                    break;
+                default:
+                    _logger.LogWarning("Unhandled packet: {0}", lobbyPacketMessage.Packet.GetType().Name);
+                    break;
+            }
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             _loginUI.LoginButtonClicked -= LoginUIOnLoginButtonClicked;
-            _user.ReceivePacket -= UserOnReceivePacket;
+            _subscription?.Dispose();
         }
 
         private void LoginUIOnLoginButtonClicked(string serverHost, int serverPort, string accountName, string password)
@@ -54,7 +67,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 return;
             }
 
-
+            _lobbyService.Login(accountName, password);
         }
 
         private async UniTask<bool> EnsureConnectedToServerAsync(string serverHost, int serverPort)
@@ -72,6 +85,22 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
 
             _logger.LogInformation("failed to connect to server");
             return false;
+        }
+
+        private void HandleLoginResult(LoginResultPacket result)
+        {
+            switch (result.Status)
+            {
+                case LoginStatus.Success:
+                    break;
+                case LoginStatus.OutdatedVersion:
+                case LoginStatus.InvalidUserNameAndPassword:
+                case LoginStatus.UnknownFailure:
+                    _logger.LogWarning("Failed to logged in: {0}", result.Status);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

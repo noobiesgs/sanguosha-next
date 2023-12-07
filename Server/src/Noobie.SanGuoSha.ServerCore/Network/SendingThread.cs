@@ -1,17 +1,17 @@
 ﻿using System.Collections.Concurrent;
 using Injectio.Attributes;
+using Microsoft.Extensions.Logging;
 using Microsoft.IO;
-using NetFabric.Hyperlinq;
 
 namespace Noobie.SanGuoSha.Network;
 
 [RegisterSingleton, AutoConstructor]
 public partial class SendingThread : IDisposable
 {
-    private readonly SanGuoShaTcpServer _server;
     private readonly RecyclableMemoryStreamManager _memoryStreamManager;
+    private readonly ILogger<SendingThread> _logger;
 
-    private readonly SemaphoreSlim _semaphore = new(0, 1);
+    private readonly SemaphoreSlim _semaphore = new(0, int.MaxValue);
     private readonly ConcurrentQueue<SendingPacket> _sendingPackets = new(new BlockingCollection<SendingPacket>());
     private readonly CancellationTokenSource _cts = new();
 
@@ -39,23 +39,43 @@ public partial class SendingThread : IDisposable
                 break;
             }
 
-            var groups = _sendingPackets.AsValueEnumerable().GroupBy(p => p.Client);
-            foreach (var group in groups)
+            if (_sendingPackets.Count == 0)
             {
-                var client = group.Key;
+                continue;
+            }
+
+            var dic = new Dictionary<SanGuoShaTcpClient, List<GameDataPacket>>();
+            while (_sendingPackets.TryDequeue(out var pair))
+            {
+                var (client, packet) = pair;
+                if (dic.TryGetValue(client, out var list))
+                {
+                    list.Add(packet);
+                }
+                else
+                {
+                    list = new() { packet };
+                    dic[client] = list;
+                }
+            }
+
+            foreach (var (client, packets) in dic)
+            {
                 if (!client.Online) continue;
 
                 await using var memory = (RecyclableMemoryStream)_memoryStreamManager.GetStream();
-                StreamingSerializer.Serialize(memory, group.Count(), group);
-
                 try
                 {
+                    StreamingSerializer.Serialize(memory, packets.Count, packets);
                     // ReSharper disable once MethodHasAsyncOverload
                     client.Send(memory.GetReadOnlySequence());
                 }
                 catch (ObjectDisposedException)
                 {
-
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to send message, client id: {id}, ip: {ip}", client.Id, client.Ip);
                 }
             }
         }
@@ -76,6 +96,12 @@ internal struct SendingPacket
     {
         Client = client;
         Packet = packet;
+    }
+
+    public void Deconstruct(out SanGuoShaTcpClient client, out GameDataPacket packet)
+    {
+        client = Client;
+        packet = Packet;
     }
 
     public SanGuoShaTcpClient Client;

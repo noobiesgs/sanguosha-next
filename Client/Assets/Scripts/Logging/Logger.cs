@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.Logging
 
         void LogError(string? message, params object?[] args);
 
-        void LogException(Exception exception);
+        void LogError(Exception exception);
     }
 
     public class NullLogger : ILogger
@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.Logging
         public void LogWarning(string? message, params object?[] args) { }
         public void LogDebug(string? message, params object?[] args) { }
         public void LogError(string? message, params object?[] args) { }
-        public void LogException(Exception exception) { }
+        public void LogError(Exception exception) { }
     }
 
     public class Logger : ILogger
@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.Logging
             Debug.LogErrorFormat(message, args);
         }
 
-        public void LogException(Exception? exception)
+        public void LogError(Exception? exception)
         {
             if (exception == null)
             {

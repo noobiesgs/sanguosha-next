@@ -41,6 +41,8 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
             MemoryPackFormatterProvider.Register(new MemoryPoolFormatter<byte>());
 
             builder.RegisterInstance(new MessageChannel<QuitApplicationMessage>()).AsImplementedInterfaces();
+            builder.RegisterInstance(new MessageChannel<ClientDisconnectedMessage>()).AsImplementedInterfaces();
+            builder.RegisterInstance(new MessageChannel<LobbyPacketReceiveMessage>()).AsImplementedInterfaces();
 #if UNITY_EDITOR
             builder.RegisterInstance(new Logger()).AsImplementedInterfaces();
 #else
