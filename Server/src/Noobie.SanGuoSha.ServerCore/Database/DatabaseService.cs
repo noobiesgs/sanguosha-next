@@ -13,8 +13,9 @@ public sealed partial class DatabaseService : IDisposable
     private readonly ConcurrentDictionary<string, Account> _accountDic = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, Account> _accountNicknameDic = new(StringComparer.OrdinalIgnoreCase);
     private int _accountIndex;
-    private RealmConfiguration? _configuration;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private RealmConfiguration? _configuration;
+    private bool _initialized;
 
     public Account? FindAccount(string accountName)
     {
@@ -57,7 +58,7 @@ public sealed partial class DatabaseService : IDisposable
                 return false;
             }
 
-            account.Id = ++_accountIndex;
+            account.Id = Interlocked.Increment(ref _accountIndex);
 
             return _accountDic.TryAdd(account.AccountName, account) && _accountNicknameDic.TryAdd(account.Nickname, account);
         }
@@ -70,6 +71,12 @@ public sealed partial class DatabaseService : IDisposable
 
     public void Initialize()
     {
+        if (_initialized)
+        {
+            throw new InvalidOperationException("Db service already initialized");
+        }
+
+        _initialized = true;
         var config = new DbConfigurationBuilder();
 
         config.SetDbFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "./sanguosha.account.db"));
@@ -112,7 +119,14 @@ public sealed partial class DatabaseService : IDisposable
 
         while (await timer.WaitForNextTickAsync(_cancellationTokenSource.Token))
         {
-            SaveToRealm();
+            try
+            {
+                SaveToRealm();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to save to db");
+            }
         }
     }
 

@@ -13,6 +13,7 @@ public partial class LobbyPacketReceivingThread : IDisposable
     private readonly ConcurrentQueue<ReceivedLobbyPacket> _packets = new(new BlockingCollection<ReceivedLobbyPacket>());
     private readonly CancellationTokenSource _cts = new();
     private readonly ILogger<LobbyPacketReceivingThread> _logger;
+    private bool _started;
 
     public void Received(SanGuoShaTcpClient client, LobbyPacket packet)
     {
@@ -22,6 +23,11 @@ public partial class LobbyPacketReceivingThread : IDisposable
 
     public void Start()
     {
+        if (_started)
+        {
+            throw new InvalidOperationException("Receiving thread already started.");
+        }
+        _started = true;
         Task.Factory.StartNew(ReceiveLoop, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 

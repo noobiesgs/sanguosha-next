@@ -14,9 +14,15 @@ public partial class SendingThread : IDisposable
     private readonly SemaphoreSlim _semaphore = new(0, int.MaxValue);
     private readonly ConcurrentQueue<SendingPacket> _sendingPackets = new(new BlockingCollection<SendingPacket>());
     private readonly CancellationTokenSource _cts = new();
+    private bool _started;
 
     public void Start()
     {
+        if (_started)
+        {
+            throw new InvalidOperationException("Sending thread already started.");
+        }
+        _started = true;
         Task.Factory.StartNew(SendLoop, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
