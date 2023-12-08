@@ -10,7 +10,8 @@
         "MemoryPack",
         "TouchSocketSlim",
         "AllPlatformsSave",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "UniTask.DOTween"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

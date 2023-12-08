@@ -74,4 +74,10 @@ public class SanGuoShaTcpServer : TcpService<SanGuoShaTcpClient>
         base.Start();
         _logger.LogInformation("Game server started, host on {endPoint}, state: {state}", Monitors.First().Option.IpHost.EndPoint, ServerState);
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        _logger.LogInformation("Game server stopped.");
+    }
 }

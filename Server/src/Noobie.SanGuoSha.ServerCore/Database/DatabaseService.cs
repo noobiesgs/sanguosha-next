@@ -125,7 +125,7 @@ public sealed partial class DatabaseService : IDisposable
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to save to db");
+                _logger.LogError(e, "Failed to save data to db");
             }
         }
     }
@@ -147,6 +147,8 @@ public sealed partial class DatabaseService : IDisposable
                 }
             }
         });
+
+        _logger.LogInformation("Data synced to database");
     }
 
     public void Dispose()

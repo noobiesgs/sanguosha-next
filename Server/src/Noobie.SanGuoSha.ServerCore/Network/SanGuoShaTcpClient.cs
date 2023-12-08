@@ -15,6 +15,11 @@ public partial class SanGuoShaTcpClient : SocketClient
 
     protected override void Dispose(bool disposing)
     {
+        if (IsDisposed)
+        {
+            return;
+        }
+
         if (disposing)
         {
             _semaphore.Dispose();

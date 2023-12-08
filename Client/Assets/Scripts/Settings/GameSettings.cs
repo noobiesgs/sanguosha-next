@@ -35,6 +35,7 @@ namespace Noobie.SanGuoSha.Settings
         }
     }
 
+    [Serializable]
     public class ServerSettings : INotifyPropertyChanged
     {
         private string _ip

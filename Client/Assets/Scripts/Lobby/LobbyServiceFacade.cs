@@ -95,6 +95,17 @@ namespace Noobie.SanGuoSha.Lobby
             _user.SendAsync(new LoginPacket(accountName, password, Misc.ProtocolVersion));
         }
 
+        public void Register(string accountName, string nickname, string password)
+        {
+            if (!_user.IsOnline)
+            {
+                _logger.LogWarning("Client is offline.");
+                return;
+            }
+
+            _user.SendAsync(new RegisterPacket(accountName, nickname, password));
+        }
+
         public void Disconnect()
         {
             if (_user.IsOnline)

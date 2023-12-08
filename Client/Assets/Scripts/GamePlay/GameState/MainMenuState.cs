@@ -32,32 +32,37 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         {
             base.Awake();
             _loginUI.LoginButtonClicked += LoginUIOnLoginButtonClicked;
+            _loginUI.Register += LoginUIOnRegister;
             _subscription = _subscriber.Subscribe(OnReceivedLobbyPacket);
-        }
-
-        private void OnReceivedLobbyPacket(LobbyPacketReceivedMessage lobbyPacketMessage)
-        {
-            switch (lobbyPacketMessage.Packet)
-            {
-                case LoginResultPacket p:
-                    HandleLoginResult(p);
-                    break;
-                default:
-                    _logger.LogWarning("Unhandled packet: {0}", lobbyPacketMessage.Packet.GetType().Name);
-                    break;
-            }
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             _loginUI.LoginButtonClicked -= LoginUIOnLoginButtonClicked;
+            _loginUI.Register -= LoginUIOnRegister;
             _subscription?.Dispose();
         }
 
         private void LoginUIOnLoginButtonClicked(string serverHost, int serverPort, string accountName, string password)
         {
             LoginAsync(serverHost, serverPort, accountName, password).Forget();
+        }
+
+        private void LoginUIOnRegister(string serverHost, int serverPort, string accountName, string nickname, string password)
+        {
+            RegisterAsync(serverHost, serverPort, accountName, nickname, password).Forget();
+        }
+
+        private async UniTaskVoid RegisterAsync(string serverHost, int serverPort, string accountName, string nickname, string password)
+        {
+            var success = await EnsureConnectedToServerAsync(serverHost, serverPort);
+            if (!success)
+            {
+                return;
+            }
+
+            _lobbyService.Register(accountName, nickname, password);
         }
 
         private async UniTaskVoid LoginAsync(string serverHost, int serverPort, string accountName, string password)
@@ -85,7 +90,44 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             }
 
             _logger.LogInformation("failed to connect to server");
+            _popupManager.ShowPopupPanel("服务器连接失败");
             return false;
+        }
+
+        private void OnReceivedLobbyPacket(LobbyPacketReceivedMessage lobbyPacketMessage)
+        {
+            switch (lobbyPacketMessage.Packet)
+            {
+                case LoginResultPacket p:
+                    HandleLoginResult(p);
+                    break;
+                case RegisterResultPacket p:
+                    HandleRegisterResult(p);
+                    break;
+                default:
+                    _logger.LogWarning("Unhandled packet: {0}", lobbyPacketMessage.Packet.GetType().Name);
+                    break;
+            }
+        }
+
+        private void HandleRegisterResult(RegisterResultPacket result)
+        {
+            switch (result.Status)
+            {
+                case RegisterStatus.Success:
+                    _loginUI.BackfillRegisterAccountName();
+                    _loginUI.SaveAccountInfoToGameSettings();
+                    _popupManager.ShowPopupPanel("注册成功");
+                    break;
+                case RegisterStatus.Invalid:
+                    _popupManager.ShowPopupPanel("无效注册信息");
+                    break;
+                case RegisterStatus.AccountAlreadyExists:
+                    _popupManager.ShowPopupPanel("账号已存在");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private void HandleLoginResult(LoginResultPacket result)
@@ -93,6 +135,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             switch (result.Status)
             {
                 case LoginStatus.Success:
+                    _loginUI.SaveAccountInfoToGameSettings();
                     break;
                 case LoginStatus.OutdatedVersion:
                     _popupManager.ShowPopupPanel("客户端版本与服务器不匹配，请更新");

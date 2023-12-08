@@ -13,9 +13,7 @@ internal class RegisterMessageHandler : MessageHandlerBase<RegisterPacket>
 
     protected override void Handle(SanGuoShaTcpClient connection, RegisterPacket packet)
     {
-        connection.SendAsync(LobbyService.Register(packet.AccountName, packet.Nickname, packet.Password)
-            ? new RegisterResultPacket(RegisterStatus.Success)
-            : new RegisterResultPacket(RegisterStatus.AccountAlreadyExists));
+        connection.SendAsync(new RegisterResultPacket(LobbyService.Register(packet.AccountName, packet.Nickname, packet.Password)));
     }
 
     protected override bool ConnectionAuthentication(SanGuoShaTcpClient connection)

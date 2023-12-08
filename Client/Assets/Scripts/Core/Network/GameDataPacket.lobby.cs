@@ -18,7 +18,7 @@ namespace Noobie.SanGuoSha.Network
     public sealed partial record LoginPacket(string AccountName, string Password, int ProtocolVersion) : LobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record RegisterPacket(string AccountName, string Password, string Nickname) : LobbyPacket;
+    public sealed partial record RegisterPacket(string AccountName, string Nickname, string Password) : LobbyPacket;
 
     [MemoryPackable]
     public sealed partial record RegisterResultPacket(RegisterStatus Status) : LobbyPacket;
@@ -80,6 +80,7 @@ namespace Noobie.SanGuoSha.Network
     public enum RegisterStatus : byte
     {
         Success,
+        Invalid,
         AccountAlreadyExists,
     }
 

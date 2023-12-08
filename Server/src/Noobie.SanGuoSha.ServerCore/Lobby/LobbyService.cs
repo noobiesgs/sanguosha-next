@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Injectio.Attributes;
 using Microsoft.Extensions.Logging;
 using Noobie.SanGuoSha.Database;
@@ -15,8 +16,26 @@ public partial class LobbyService
     private readonly ConcurrentDictionary<string, ServerPlayer> _loggedInPlayersAccountMap = new();
     private readonly ILogger<LobbyService> _logger;
 
-    public bool Register(string accountName, string nickname, string password)
+    [GeneratedRegex(Misc.AccountNamePattern)]
+    private partial Regex AccountNameRegex();
+
+    [GeneratedRegex(Misc.NicknamePattern)]
+    private partial Regex NicknameRegex();
+
+    [GeneratedRegex(Misc.PasswordPattern)]
+    private partial Regex PasswordRegex();
+
+    public RegisterStatus Register(string accountName, string nickname, string password)
     {
+        if (!AccountNameRegex().IsMatch(accountName)
+            || !NicknameRegex().IsMatch(nickname)
+            || !PasswordRegex().IsMatch(password))
+        {
+            _logger.LogInformation("Invalid register info: {account}, {nickname}, {password}", accountName, nickname, password);
+            return RegisterStatus.Invalid;
+        }
+
+
         if (!_dbService.AccountExist(accountName))
         {
             var account = new Account
@@ -25,10 +44,14 @@ public partial class LobbyService
                 Nickname = nickname
             };
             account.SetPassword(password);
-            return _dbService.TryCreateAccount(account);
+            if (_dbService.TryCreateAccount(account))
+            {
+                return RegisterStatus.Success;
+            }
+            return RegisterStatus.AccountAlreadyExists;
         }
 
-        return false;
+        return RegisterStatus.AccountAlreadyExists;
     }
 
     //TODO
@@ -90,7 +113,7 @@ public partial class LobbyService
 
             player.Account.LastIp = connection.Ip;
         }
-        _logger.LogWarning("player logged in. Ip: {ip}", connection.Ip);
+        _logger.LogInformation("player logged in. Ip: {ip}", connection.Ip);
         return LoginStatus.Success;
     }
 
