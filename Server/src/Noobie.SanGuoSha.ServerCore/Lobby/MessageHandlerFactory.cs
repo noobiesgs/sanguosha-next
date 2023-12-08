@@ -10,7 +10,7 @@ public partial class MessageHandlerFactory
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public IMessageHandler GetMessageHandler(LobbyPacket packet)
+    public IMessageHandler GetMessageHandler(ILobbyPacket packet)
     {
         var handler = _serviceProvider.GetRequiredKeyedService<IMessageHandler>(packet.GetType().Name);
         return handler;

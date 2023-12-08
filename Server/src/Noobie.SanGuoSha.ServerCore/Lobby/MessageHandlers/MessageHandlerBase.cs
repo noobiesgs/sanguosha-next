@@ -3,7 +3,7 @@ using Noobie.SanGuoSha.Network;
 
 namespace Noobie.SanGuoSha.Lobby.MessageHandlers;
 
-internal abstract class MessageHandlerBase<TPacket> : IMessageHandler where TPacket : LobbyPacket
+internal abstract class MessageHandlerBase<TPacket> : IMessageHandler where TPacket : ILobbyPacket
 {
     protected LobbyService LobbyService { get; }
     protected ILogger<MessageHandlerBase<TPacket>> Logger { get; }
@@ -14,7 +14,7 @@ internal abstract class MessageHandlerBase<TPacket> : IMessageHandler where TPac
         Logger = logger;
     }
 
-    public void Handle(SanGuoShaTcpClient connection, LobbyPacket packet)
+    public void Handle(SanGuoShaTcpClient connection, ILobbyPacket packet)
     {
         if (!ConnectionAuthentication(connection))
         {

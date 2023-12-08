@@ -15,7 +15,7 @@ public partial class LobbyPacketReceivingThread : IDisposable
     private readonly ILogger<LobbyPacketReceivingThread> _logger;
     private bool _started;
 
-    public void Received(SanGuoShaTcpClient client, LobbyPacket packet)
+    public void Received(SanGuoShaTcpClient client, ILobbyPacket packet)
     {
         _packets.Enqueue(new ReceivedLobbyPacket(client, packet));
         _semaphore.Release();
@@ -75,12 +75,12 @@ public partial class LobbyPacketReceivingThread : IDisposable
 
 internal struct ReceivedLobbyPacket
 {
-    public ReceivedLobbyPacket(SanGuoShaTcpClient client, LobbyPacket packet)
+    public ReceivedLobbyPacket(SanGuoShaTcpClient client, ILobbyPacket packet)
     {
         Client = client;
         Packet = packet;
     }
 
     public SanGuoShaTcpClient Client;
-    public LobbyPacket Packet;
+    public ILobbyPacket Packet;
 }

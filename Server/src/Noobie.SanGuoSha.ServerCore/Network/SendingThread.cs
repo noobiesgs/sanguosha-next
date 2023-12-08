@@ -26,7 +26,7 @@ public partial class SendingThread : IDisposable
         Task.Factory.StartNew(SendLoop, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
-    public void Send(SanGuoShaTcpClient client, GameDataPacket packet)
+    public void Send(SanGuoShaTcpClient client, IGameDataPacket packet)
     {
         _sendingPackets.Enqueue(new SendingPacket(client, packet));
         _semaphore.Release();
@@ -50,7 +50,7 @@ public partial class SendingThread : IDisposable
                 continue;
             }
 
-            var dic = new Dictionary<SanGuoShaTcpClient, List<GameDataPacket>>();
+            var dic = new Dictionary<SanGuoShaTcpClient, List<IGameDataPacket>>();
             while (_sendingPackets.TryDequeue(out var pair))
             {
                 var (client, packet) = pair;
@@ -98,18 +98,18 @@ public partial class SendingThread : IDisposable
 
 internal struct SendingPacket
 {
-    public SendingPacket(SanGuoShaTcpClient client, GameDataPacket packet)
+    public SendingPacket(SanGuoShaTcpClient client, IGameDataPacket packet)
     {
         Client = client;
         Packet = packet;
     }
 
-    public void Deconstruct(out SanGuoShaTcpClient client, out GameDataPacket packet)
+    public void Deconstruct(out SanGuoShaTcpClient client, out IGameDataPacket packet)
     {
         client = Client;
         packet = Packet;
     }
 
     public SanGuoShaTcpClient Client;
-    public GameDataPacket Packet;
+    public IGameDataPacket Packet;
 }

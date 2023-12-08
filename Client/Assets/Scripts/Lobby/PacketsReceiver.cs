@@ -45,7 +45,7 @@ namespace Noobie.SanGuoSha.Lobby
             {
                 switch (packet)
                 {
-                    case LobbyPacket p:
+                    case ILobbyPacket p:
                         _lobbyMessagePublisher.Publish(new LobbyPacketReceivedMessage(p));
                         break;
                     default:

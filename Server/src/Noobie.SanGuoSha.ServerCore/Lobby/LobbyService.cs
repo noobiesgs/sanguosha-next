@@ -35,26 +35,16 @@ public partial class LobbyService
             return RegisterStatus.Invalid;
         }
 
-
-        if (!_dbService.AccountExist(accountName))
+        var account = new Account
         {
-            var account = new Account
-            {
-                AccountName = accountName,
-                Nickname = nickname
-            };
-            account.SetPassword(password);
-            if (_dbService.TryCreateAccount(account))
-            {
-                return RegisterStatus.Success;
-            }
-            return RegisterStatus.AccountAlreadyExists;
-        }
-
-        return RegisterStatus.AccountAlreadyExists;
+            AccountName = accountName,
+            Nickname = nickname
+        };
+        account.SetPassword(password);
+        return _dbService.CreateAccount(account);
     }
 
-    //TODO
+    //TODO：同一连接登录多个账号，要处理
     public LoginStatus Login(SanGuoShaTcpClient connection, int version, string accountName, string password, out Account? account, out LoginToken reconnectionToken)
     {
         reconnectionToken = new LoginToken();

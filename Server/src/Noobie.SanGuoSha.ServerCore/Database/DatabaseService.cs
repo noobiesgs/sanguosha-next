@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Injectio.Attributes;
 using Microsoft.Extensions.Logging;
+using Noobie.SanGuoSha.Network;
 using Realms;
 
 namespace Noobie.SanGuoSha.Database;
@@ -27,40 +28,33 @@ public sealed partial class DatabaseService : IDisposable
         return null;
     }
 
-    public bool TryCreateAccount(Account account)
+    public RegisterStatus CreateAccount(Account account)
     {
-        if (string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Nickname))
-        {
-            _logger.LogWarning("account name or nickname cannot be null. {@account}", account);
-            return false;
-        }
-
-        if (string.IsNullOrEmpty(account.Password))
-        {
-            _logger.LogWarning("account password cannot be null. {@account}", account);
-            return false;
-        }
-
         if (_accountDic.ContainsKey(account.AccountName))
         {
-            return false;
+            return RegisterStatus.AccountAlreadyExists;
         }
 
         lock (_accountCreationLock)
         {
             if (_accountDic.ContainsKey(account.AccountName))
             {
-                return false;
+                return RegisterStatus.AccountAlreadyExists;
             }
 
             if (_accountNicknameDic.ContainsKey(account.Nickname))
             {
-                return false;
+                return RegisterStatus.NicknameAlreadyExists;
             }
 
             account.Id = Interlocked.Increment(ref _accountIndex);
 
-            return _accountDic.TryAdd(account.AccountName, account) && _accountNicknameDic.TryAdd(account.Nickname, account);
+            if (_accountDic.TryAdd(account.AccountName, account) && _accountNicknameDic.TryAdd(account.Nickname, account))
+            {
+                return RegisterStatus.Success;
+            }
+
+            return RegisterStatus.AccountAlreadyExists;
         }
     }
 

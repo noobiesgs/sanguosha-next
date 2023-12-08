@@ -10,7 +10,7 @@ public partial class SanGuoShaTcpClient : SocketClient
 {
     private readonly SendingThread _sendingThread;
     private readonly SemaphoreSlim _semaphore = new(0, int.MaxValue);
-    private readonly ConcurrentQueue<GameDataPacket> _packetsReceived = new(new BlockingCollection<GameDataPacket>());
+    private readonly ConcurrentQueue<IGameDataPacket> _packetsReceived = new(new BlockingCollection<IGameDataPacket>());
     private readonly RecyclableMemoryStreamManager _memoryStreamManager = new();
 
     protected override void Dispose(bool disposing)
@@ -27,22 +27,22 @@ public partial class SanGuoShaTcpClient : SocketClient
         base.Dispose(disposing);
     }
 
-    public void Receive(GameDataPacket packet)
+    public void Receive(IGameDataPacket packet)
     {
         _packetsReceived.Enqueue(packet);
         _semaphore.Release();
     }
 
-    public void SendAsync(GameDataPacket packet)
+    public void SendAsync(IGameDataPacket packet)
     {
         _sendingThread.Send(this, packet);
     }
 
-    public void Send(GameDataPacket packet)
+    public void Send(IGameDataPacket packet)
     {
         ThrowIfDisposed();
         using var memory = (RecyclableMemoryStream)_memoryStreamManager.GetStream();
-        var packets = new List<GameDataPacket> { packet };
+        var packets = new List<IGameDataPacket> { packet };
         StreamingSerializer.Serialize(memory, packets.Count, packets);
         Send(memory.GetReadOnlySequence());
     }

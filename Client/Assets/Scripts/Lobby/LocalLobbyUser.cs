@@ -14,8 +14,8 @@ namespace Noobie.SanGuoSha.Lobby
 
         public bool IsOnline => Connection?.Online == true;
 
-        internal Queue<GameDataPacket> SendingPackets = new();
-        internal ConcurrentQueue<GameDataPacket> ReceivedPackets = new(new BlockingCollection<GameDataPacket>());
+        internal Queue<IGameDataPacket> SendingPackets = new();
+        internal ConcurrentQueue<IGameDataPacket> ReceivedPackets = new(new BlockingCollection<IGameDataPacket>());
 
         public LocalLobbyUser(IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher)
         {
@@ -42,7 +42,7 @@ namespace Noobie.SanGuoSha.Lobby
             }
         }
 
-        private void ConnectionOnReceivePacket(GameDataPacket packet)
+        private void ConnectionOnReceivePacket(IGameDataPacket packet)
         {
             ReceivedPackets.Enqueue(packet);
         }
@@ -53,7 +53,7 @@ namespace Noobie.SanGuoSha.Lobby
             _clientDisconnectedMessagePublisher.Publish(new ClientDisconnectedMessage());
         }
 
-        public void SendAsync(GameDataPacket packet)
+        public void SendAsync(IGameDataPacket packet)
         {
             SendingPackets.Enqueue(packet);
         }

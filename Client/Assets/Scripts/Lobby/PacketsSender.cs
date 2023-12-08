@@ -34,7 +34,7 @@ namespace Noobie.SanGuoSha.Lobby
                 return;
             }
 
-            var packets = new List<GameDataPacket>();
+            var packets = new List<IGameDataPacket>();
             while (_user.SendingPackets.TryDequeue(out var packet))
             {
                 packets.Add(packet);

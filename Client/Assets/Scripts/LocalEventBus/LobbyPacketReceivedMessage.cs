@@ -4,11 +4,11 @@ namespace Noobie.SanGuoSha.LocalEventBus
 {
     public struct LobbyPacketReceivedMessage
     {
-        public LobbyPacketReceivedMessage(LobbyPacket packet)
+        public LobbyPacketReceivedMessage(ILobbyPacket packet)
         {
             Packet = packet;
         }
 
-        public LobbyPacket Packet;
+        public ILobbyPacket Packet;
     }
 }

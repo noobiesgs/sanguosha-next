@@ -685,7 +685,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u53EF\u5305\u542B\u82F1\u6587\uFF0C\u6570\u5B57\uFF0C\u82F1\u6587\u7B26\u53F7\uFF0C6-20\u4F4D"
+  m_Text: "\u53EF\u5305\u542B\u82F1\u6587\uFF0C\u6570\u5B57\uFF0C\u82F1\u6587\u7B26\u53F7\uFF0C5-20\u4F4D"
 --- !u!1 &2461831021962283154
 GameObject:
   m_ObjectHideFlags: 0
@@ -995,8 +995,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u8D26\u53F7\u53EF\u4EE5\u5305\u542B\u82F1\u6587\uFF0C\u6570\u5B57\uFF0C\u4E0B\u5212\u7EBF
-    _\uFF0C6-20\u4F4D"
+  m_Text: "\u4E0E\u4E0A\u9762\u5BC6\u7801\u76F8\u540C"
 --- !u!1 &3173326103939852816
 GameObject:
   m_ObjectHideFlags: 0
@@ -1679,6 +1678,7 @@ GameObject:
   - component: {fileID: 5527442302329001152}
   - component: {fileID: 1840982113111324595}
   - component: {fileID: 4526207196797713912}
+  - component: {fileID: 5891292283500462601}
   m_Layer: 5
   m_Name: RegisterUI
   m_TagString: Untagged
@@ -1761,6 +1761,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5891292283500462601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5227793467338767599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 4
+    callback:
+      m_PersistentCalls:
+        m_Calls: []
 --- !u!1 &5357501819792501802
 GameObject:
   m_ObjectHideFlags: 0

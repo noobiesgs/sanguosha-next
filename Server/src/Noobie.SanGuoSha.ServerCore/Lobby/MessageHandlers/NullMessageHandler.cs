@@ -9,7 +9,7 @@ internal partial class NullMessageHandler : IMessageHandler
 {
     private readonly ILogger<NullMessageHandler> _logger;
 
-    public void Handle(SanGuoShaTcpClient connection, LobbyPacket packet)
+    public void Handle(SanGuoShaTcpClient connection, ILobbyPacket packet)
     {
         _logger.LogWarning("No handler specified for packet {packet}", packet.GetType().Name);
     }

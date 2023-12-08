@@ -48,11 +48,11 @@ public class SanGuoShaTcpServer : TcpService<SanGuoShaTcpClient>
     {
         using var memory = new MemoryStream(buffer, offset, length, false);
 
-        var packets = StreamingSerializer.Deserialize<GameDataPacket>(memory);
+        var packets = StreamingSerializer.Deserialize<IGameDataPacket>(memory);
 
         foreach (var packet in packets)
         {
-            if (packet is LobbyPacket lobbyPacket)
+            if (packet is ILobbyPacket lobbyPacket)
             {
                 _lobbyPacketReceivingThread.Received(client, lobbyPacket);
             }

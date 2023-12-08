@@ -125,6 +125,9 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 case RegisterStatus.AccountAlreadyExists:
                     _popupManager.ShowPopupPanel("账号已存在");
                     break;
+                case RegisterStatus.NicknameAlreadyExists:
+                    _popupManager.ShowPopupPanel("昵称已存在");
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

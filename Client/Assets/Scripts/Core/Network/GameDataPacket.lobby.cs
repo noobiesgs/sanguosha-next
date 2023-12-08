@@ -5,29 +5,32 @@ using MemoryPack;
 namespace Noobie.SanGuoSha.Network
 {
     [MemoryPackable]
-    [MemoryPackUnion(30001, typeof(LoginPacket))]
-    [MemoryPackUnion(30002, typeof(RegisterPacket))]
-    [MemoryPackUnion(30003, typeof(ChatPacket))]
-    [MemoryPackUnion(30004, typeof(LoginResultPacket))]
-    [MemoryPackUnion(30005, typeof(ServerDisconnectedPacket))]
-    [MemoryPackUnion(30006, typeof(RegisterResultPacket))]
-    [MemoryPackUnion(30007, typeof(PingPacket))]
-    public abstract partial record LobbyPacket : GameDataPacket;
+    [MemoryPackUnion(20001, typeof(LoginPacket))]
+    [MemoryPackUnion(20002, typeof(RegisterPacket))]
+    [MemoryPackUnion(20003, typeof(ChatPacket))]
+    [MemoryPackUnion(20004, typeof(LoginResultPacket))]
+    [MemoryPackUnion(20005, typeof(ServerDisconnectedPacket))]
+    [MemoryPackUnion(20006, typeof(RegisterResultPacket))]
+    [MemoryPackUnion(20007, typeof(PingPacket))]
+    public partial interface ILobbyPacket : IGameDataPacket
+    {
+
+    }
 
     [MemoryPackable]
-    public sealed partial record LoginPacket(string AccountName, string Password, int ProtocolVersion) : LobbyPacket;
+    public sealed partial record LoginPacket(string AccountName, string Password, int ProtocolVersion) : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record RegisterPacket(string AccountName, string Nickname, string Password) : LobbyPacket;
+    public sealed partial record RegisterPacket(string AccountName, string Nickname, string Password) : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record RegisterResultPacket(RegisterStatus Status) : LobbyPacket;
+    public sealed partial record RegisterResultPacket(RegisterStatus Status) : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record ChatPacket(string Message) : LobbyPacket;
+    public sealed partial record ChatPacket(string Message) : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record LoginResultPacket : LobbyPacket
+    public sealed partial record LoginResultPacket : ILobbyPacket
     {
         [MemoryPackConstructor]
         public LoginResultPacket(LoginStatus status, AccountPacket account, LoginToken token)
@@ -55,7 +58,7 @@ namespace Noobie.SanGuoSha.Network
     }
 
     [MemoryPackable]
-    public sealed partial record PingPacket : LobbyPacket;
+    public sealed partial record PingPacket : ILobbyPacket;
 
     [MemoryPackable]
     public sealed partial record AccountPacket(string Nickname, string Title, int Wins, int Losses, int Escapes, AvatarShowPacket AvatarShow);
@@ -70,7 +73,7 @@ namespace Noobie.SanGuoSha.Network
     }
 
     [MemoryPackable]
-    public sealed partial record ServerDisconnectedPacket(DisconnectReason Reason) : LobbyPacket;
+    public sealed partial record ServerDisconnectedPacket(DisconnectReason Reason) : ILobbyPacket;
 
     public enum DisconnectReason
     {
@@ -82,6 +85,7 @@ namespace Noobie.SanGuoSha.Network
         Success,
         Invalid,
         AccountAlreadyExists,
+        NicknameAlreadyExists,
     }
 
 

@@ -4,7 +4,7 @@ using TouchSocketSlim.Sockets;
 
 namespace Noobie.SanGuoSha.Network
 {
-    public delegate void ReceivePacketEventHandler(GameDataPacket packet);
+    public delegate void ReceivePacketEventHandler(IGameDataPacket packet);
 
     public delegate void DisconnectedEventHandler();
 
@@ -18,7 +18,7 @@ namespace Noobie.SanGuoSha.Network
         protected override void ReceivedData(byte[] buffer, int offset, int length)
         {
             using var memory = new MemoryStream(buffer, offset, length, false);
-            var packets = StreamingSerializer.Deserialize<GameDataPacket>(memory);
+            var packets = StreamingSerializer.Deserialize<IGameDataPacket>(memory);
             foreach (var packet in packets)
             {
                 OnReceivePacket(packet);
@@ -30,7 +30,7 @@ namespace Noobie.SanGuoSha.Network
             OnDisconnected();
         }
 
-        private void OnReceivePacket(GameDataPacket packet)
+        private void OnReceivePacket(IGameDataPacket packet)
         {
             ReceivePacket?.Invoke(packet);
         }
