@@ -30,7 +30,7 @@ namespace Noobie.SanGuoSha.Network
     [MemoryPackUnion(12001, typeof(StatusSync))]
     public partial interface IGamingPacket : IGameDataPacket
     {
-
+        float Timestamp { get; init; }
     }
 
     [MemoryPackable]
@@ -41,7 +41,7 @@ namespace Noobie.SanGuoSha.Network
     }
 
     [MemoryPackable]
-    public sealed partial record AskForCardUsageResponse(int Id) : IGameResponse;
+    public sealed partial record AskForCardUsageResponse(int Id, float Timestamp) : IGameResponse;
 
     [MemoryPackable]
     [MemoryPackUnion(12001, typeof(StatusSync))]
@@ -51,8 +51,5 @@ namespace Noobie.SanGuoSha.Network
     }
 
     [MemoryPackable]
-    public sealed partial record StatusSync : IGameUpdate
-    {
-        public int Status { get; init; }
-    }
+    public sealed partial record StatusSync(float Timestamp, int Status) : IGameUpdate;
 }

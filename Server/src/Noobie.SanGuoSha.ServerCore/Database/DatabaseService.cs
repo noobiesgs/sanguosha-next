@@ -28,33 +28,33 @@ public sealed partial class DatabaseService : IDisposable
         return null;
     }
 
-    public RegisterStatus CreateAccount(Account account)
+    public RegistrationStatus CreateAccount(Account account)
     {
         if (_accountDic.ContainsKey(account.AccountName))
         {
-            return RegisterStatus.AccountAlreadyExists;
+            return RegistrationStatus.AccountAlreadyExists;
         }
 
         lock (_accountCreationLock)
         {
             if (_accountDic.ContainsKey(account.AccountName))
             {
-                return RegisterStatus.AccountAlreadyExists;
+                return RegistrationStatus.AccountAlreadyExists;
             }
 
             if (_accountNicknameDic.ContainsKey(account.Nickname))
             {
-                return RegisterStatus.NicknameAlreadyExists;
+                return RegistrationStatus.NicknameAlreadyExists;
             }
 
             account.Id = Interlocked.Increment(ref _accountIndex);
 
             if (_accountDic.TryAdd(account.AccountName, account) && _accountNicknameDic.TryAdd(account.Nickname, account))
             {
-                return RegisterStatus.Success;
+                return RegistrationStatus.Success;
             }
 
-            return RegisterStatus.AccountAlreadyExists;
+            return RegistrationStatus.AccountAlreadyExists;
         }
     }
 

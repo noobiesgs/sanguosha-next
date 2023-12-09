@@ -42,6 +42,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             _loginUI.LoginButtonClicked -= LoginUIOnLoginButtonClicked;
             _loginUI.Register -= LoginUIOnRegister;
             _subscription?.Dispose();
+            _logger.LogInformation("MainMenuState destroyed");
         }
 
         private void LoginUIOnLoginButtonClicked(string serverHost, int serverPort, string accountName, string password)
@@ -114,18 +115,18 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         {
             switch (result.Status)
             {
-                case RegisterStatus.Success:
+                case RegistrationStatus.Success:
                     _loginUI.BackfillRegisterAccountName();
                     _loginUI.SaveAccountInfoToGameSettings();
                     _popupManager.ShowPopupPanel("注册成功");
                     break;
-                case RegisterStatus.Invalid:
+                case RegistrationStatus.Invalid:
                     _popupManager.ShowPopupPanel("无效注册信息");
                     break;
-                case RegisterStatus.AccountAlreadyExists:
+                case RegistrationStatus.AccountAlreadyExists:
                     _popupManager.ShowPopupPanel("账号已存在");
                     break;
-                case RegisterStatus.NicknameAlreadyExists:
+                case RegistrationStatus.NicknameAlreadyExists:
                     _popupManager.ShowPopupPanel("昵称已存在");
                     break;
                 default:

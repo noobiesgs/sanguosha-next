@@ -24,7 +24,7 @@ namespace Noobie.SanGuoSha.Network
     public sealed partial record RegisterPacket(string AccountName, string Nickname, string Password) : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record RegisterResultPacket(RegisterStatus Status) : ILobbyPacket;
+    public sealed partial record RegisterResultPacket(RegistrationStatus Status) : ILobbyPacket;
 
     [MemoryPackable]
     public sealed partial record ChatPacket(string Message) : ILobbyPacket;
@@ -80,7 +80,7 @@ namespace Noobie.SanGuoSha.Network
         LoggedInOnAnotherDevice
     }
 
-    public enum RegisterStatus : byte
+    public enum RegistrationStatus : byte
     {
         Success,
         Invalid,

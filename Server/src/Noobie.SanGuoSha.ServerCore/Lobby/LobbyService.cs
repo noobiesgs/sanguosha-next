@@ -25,14 +25,14 @@ public partial class LobbyService
     [GeneratedRegex(Misc.PasswordPattern)]
     private partial Regex PasswordRegex();
 
-    public RegisterStatus Register(string accountName, string nickname, string password)
+    public RegistrationStatus Register(string accountName, string nickname, string password)
     {
         if (!AccountNameRegex().IsMatch(accountName)
             || !NicknameRegex().IsMatch(nickname)
             || !PasswordRegex().IsMatch(password))
         {
-            _logger.LogInformation("Invalid register info: {account}, {nickname}, {password}", accountName, nickname, password);
-            return RegisterStatus.Invalid;
+            _logger.LogInformation("Invalid registration info: {account}, {nickname}, {password}", accountName, nickname, password);
+            return RegistrationStatus.Invalid;
         }
 
         var account = new Account
@@ -44,7 +44,6 @@ public partial class LobbyService
         return _dbService.CreateAccount(account);
     }
 
-    //TODO：同一连接登录多个账号，要处理
     public LoginStatus Login(SanGuoShaTcpClient connection, int version, string accountName, string password, out Account? account, out LoginToken reconnectionToken)
     {
         reconnectionToken = new LoginToken();
@@ -76,11 +75,11 @@ public partial class LobbyService
                 {
                     if (player.Connection == connection)
                     {
-                        _logger.LogWarning("player logged in twice? Connection ip: {ip}", player.Connection.Ip);
+                        _logger.LogWarning("player logged in twice? Connection ip: {ip}, account: {accountName}", player.Connection.Ip, account.AccountName);
                         return LoginStatus.UnknownFailure;
                     }
 
-                    _logger.LogWarning("player already logged in, kick out. Old connection ip: {ip}", player.Connection.Ip);
+                    _logger.LogWarning("player already logged in, kick out. Old connection ip: {ip}, account: {accountName}", player.Connection.Ip, account.AccountName);
                     _loggedInPlayersConnectionIdMap.TryRemove(player.Connection.Id, out _);
                     player.Connection.Send(new ServerDisconnectedPacket(DisconnectReason.LoggedInOnAnotherDevice));
                     player.Connection.Close(nameof(DisconnectReason.LoggedInOnAnotherDevice));
@@ -89,6 +88,12 @@ public partial class LobbyService
                 player.Connection = connection;
                 reconnectionToken = player.LoginToken;
                 _loggedInPlayersConnectionIdMap.TryAdd(connection.Id, player);
+            }
+            else if (_loggedInPlayersConnectionIdMap.TryGetValue(connection.Id, out player))
+            {
+                _logger.LogWarning("player already logged in with another account? Connection ip: {ip}, account: {accountName}, exists account: {existsAccount}",
+                    player.Connection!.Ip, account.AccountName, player.Account.AccountName);
+                return LoginStatus.UnknownFailure;
             }
             else
             {
@@ -103,7 +108,7 @@ public partial class LobbyService
 
             player.Account.LastIp = connection.Ip;
         }
-        _logger.LogInformation("player logged in. Ip: {ip}", connection.Ip);
+        _logger.LogInformation("player logged in. Ip: {ip}, account: {accountName}", connection.Ip, account.AccountName);
         return LoginStatus.Success;
     }
 
@@ -131,7 +136,7 @@ public partial class LobbyService
 
     public void ClientDisconnected(SanGuoShaTcpClient connection)
     {
-        //TODO:
+        //TODO: 正在游戏的玩家需要断线重连逻辑
         if (_loggedInPlayersConnectionIdMap.TryRemove(connection.Id, out var player))
         {
             _loggedInPlayersAccountMap.TryRemove(player.Account.AccountName, out _);
