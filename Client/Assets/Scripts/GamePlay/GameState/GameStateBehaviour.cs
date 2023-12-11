@@ -5,7 +5,9 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
 {
     public enum GameState
     {
-        MainMenu
+        MainMenu,
+        Lobby,
+        Game
     }
 
     /// <summary>
@@ -35,7 +37,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
     /// Important Note: We assume that every Scene has a GameState object. If not, then it's possible that a Persisting game state
     /// will outlast its lifetime (as there is no successor state to clean it up).
     /// </remarks>
-    internal abstract class GameStateBehaviour : LifetimeScope
+    public abstract class GameStateBehaviour : LifetimeScope
     {
         /// <summary>
         /// Does this GameState persist across multiple scenes?

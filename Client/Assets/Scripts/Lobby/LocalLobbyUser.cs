@@ -2,30 +2,32 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 
 namespace Noobie.SanGuoSha.Lobby
 {
+    public enum NetworkEvent
+    {
+        Disconnected
+    }
+
     public class LocalLobbyUser
     {
         private SanGuoShaTcpClient? _connection;
-        private readonly IPublisher<ClientDisconnectedMessage> _clientDisconnectedMessagePublisher;
+        internal Queue<IGameDataPacket> SendingPackets = new();
+        internal ConcurrentQueue<IGameDataPacket> ReceivedPackets = new(new BlockingCollection<IGameDataPacket>());
+        internal ConcurrentQueue<NetworkEvent> NetworkEvents = new(new BlockingCollection<NetworkEvent>());
 
         public bool IsOnline => Connection?.Online == true;
 
-        internal Queue<IGameDataPacket> SendingPackets = new();
-        internal ConcurrentQueue<IGameDataPacket> ReceivedPackets = new(new BlockingCollection<IGameDataPacket>());
+        public Account Account { get; } = new();
 
-        public LocalLobbyUser(IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher)
-        {
-            _clientDisconnectedMessagePublisher = clientDisconnectedMessagePublisher;
-        }
+        public LoginToken LoginToken { get; set; } = LoginToken.Empty;
 
         public SanGuoShaTcpClient? Connection
         {
             get => _connection;
-            set
+            internal set
             {
                 if (_connection == value) return;
                 if (_connection != null)
@@ -39,6 +41,11 @@ namespace Noobie.SanGuoSha.Lobby
                     _connection.Disconnected += ConnectionOnDisconnected;
                     _connection.ReceivePacket += ConnectionOnReceivePacket;
                 }
+                else
+                {
+                    Account.Update(AccountPacket.Empty);
+                    LoginToken = LoginToken.Empty;
+                }
             }
         }
 
@@ -50,7 +57,7 @@ namespace Noobie.SanGuoSha.Lobby
         private void ConnectionOnDisconnected()
         {
             Connection = null;
-            _clientDisconnectedMessagePublisher.Publish(new ClientDisconnectedMessage());
+            NetworkEvents.Enqueue(NetworkEvent.Disconnected);
         }
 
         public void SendAsync(IGameDataPacket packet)

@@ -61,7 +61,10 @@ namespace Noobie.SanGuoSha.Network
     public sealed partial record PingPacket : ILobbyPacket;
 
     [MemoryPackable]
-    public sealed partial record AccountPacket(string Nickname, string Title, int Wins, int Losses, int Escapes, AvatarShowPacket AvatarShow);
+    public sealed partial record AccountPacket(string Nickname, string Title, int Wins, int Losses, int Escapes, AvatarShowPacket AvatarShow)
+    {
+        public static readonly AccountPacket Empty = new(string.Empty, string.Empty, 0, 0, 0, new AvatarShowPacket(0, 0, 0));
+    }
 
     [MemoryPackable]
     public sealed partial record AvatarShowPacket(int AvatarIndex, int BorderIndex, int BackgroundIndex);
@@ -69,6 +72,8 @@ namespace Noobie.SanGuoSha.Network
     [MemoryPackable]
     public partial struct LoginToken
     {
+        public static readonly LoginToken Empty = default;
+
         public Guid TokenString { get; init; }
     }
 

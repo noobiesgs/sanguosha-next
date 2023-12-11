@@ -13,7 +13,7 @@ namespace Noobie.SanGuoSha.Lobby
     {
         private readonly LobbyHeartbeat _lobbyHeartbeat;
         private readonly PacketsSender _packetsSender;
-        private readonly PacketsReceiver _packetsReceiver;
+        private readonly NetworkEventsTracker _networkEventsTracker;
         private readonly ILogger _logger;
         private readonly LocalLobbyUser _user;
         private readonly ISubscriber<ClientDisconnectedMessage> _subscriber;
@@ -26,7 +26,7 @@ namespace Noobie.SanGuoSha.Lobby
             LobbyHeartbeat lobbyHeartbeat,
             PacketsSender packetsSender,
             ISubscriber<ClientDisconnectedMessage> subscriber,
-            PacketsReceiver packetsReceiver
+            NetworkEventsTracker networkEventsTracker
             )
         {
             _logger = logger;
@@ -34,7 +34,7 @@ namespace Noobie.SanGuoSha.Lobby
             _lobbyHeartbeat = lobbyHeartbeat;
             _packetsSender = packetsSender;
             _subscriber = subscriber;
-            _packetsReceiver = packetsReceiver;
+            _networkEventsTracker = networkEventsTracker;
         }
 
         public void Dispose()
@@ -56,7 +56,7 @@ namespace Noobie.SanGuoSha.Lobby
         {
             _lobbyHeartbeat.EndTracking();
             _packetsSender.EndSend();
-            _packetsReceiver.EndReceive();
+            _networkEventsTracker.EndTracking();
         }
 
         public async UniTask<bool> ConnectAsync(string host, int port)
@@ -72,7 +72,7 @@ namespace Noobie.SanGuoSha.Lobby
                 await client.ConnectAsync(15 * 1000);
                 _lobbyHeartbeat.BeginTracking();
                 _packetsSender.BeginSend();
-                _packetsReceiver.BeginReceive();
+                _networkEventsTracker.BeginTracking();
                 _user.Connection = client;
                 return true;
             }

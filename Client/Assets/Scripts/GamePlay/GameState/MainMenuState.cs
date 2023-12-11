@@ -7,6 +7,7 @@ using Noobie.SanGuoSha.Lobby;
 using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using VContainer;
 
@@ -139,7 +140,10 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             switch (result.Status)
             {
                 case LoginStatus.Success:
+                    _user.Account.Update(result.Account);
+                    _user.LoginToken = result.Token;
                     _loginUI.SaveAccountInfoToGameSettings();
+                    SceneManager.LoadScene("Lobby");
                     break;
                 case LoginStatus.OutdatedVersion:
                     _popupManager.ShowPopupPanel("客户端版本与服务器不匹配，请更新");

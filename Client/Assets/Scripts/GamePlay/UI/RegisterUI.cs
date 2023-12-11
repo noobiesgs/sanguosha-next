@@ -59,6 +59,7 @@ namespace Noobie.SanGuoSha.GamePlay.UI
 
         public void Show()
         {
+            _inputAccountName.text = _inputNickname.text = _inputPassword.text = _inputPasswordConform.text = string.Empty;
             _parentPanel.Show();
         }
     }
