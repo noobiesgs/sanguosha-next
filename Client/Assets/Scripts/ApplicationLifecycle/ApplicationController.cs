@@ -46,7 +46,7 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
 
             builder.RegisterInstance(new MessageChannel<QuitApplicationMessage>()).AsImplementedInterfaces();
             builder.RegisterInstance(new MessageChannel<ClientDisconnectedMessage>()).AsImplementedInterfaces();
-            builder.RegisterInstance(new MessageChannel<LobbyPacketReceivedMessage>()).AsImplementedInterfaces();
+            builder.RegisterInstance(new MessageChannel<LobbyMessage>()).AsImplementedInterfaces();
 #if UNITY_EDITOR
             builder.RegisterInstance(new Logger()).AsImplementedInterfaces();
 #else
@@ -56,6 +56,7 @@ namespace Noobie.SanGuoSha.ApplicationLifecycle
             builder.Register<LobbyHeartbeat>(Lifetime.Singleton);
             builder.Register<PacketsSender>(Lifetime.Singleton);
             builder.Register<NetworkEventsTracker>(Lifetime.Singleton);
+            builder.Register<LobbyRequestWrapper>(Lifetime.Singleton);
             builder.Register<GameActionScheduler>(Lifetime.Transient);
             builder.Register<Game>(Lifetime.Scoped);
             builder.Register<GameSettingsManager>(Lifetime.Singleton);

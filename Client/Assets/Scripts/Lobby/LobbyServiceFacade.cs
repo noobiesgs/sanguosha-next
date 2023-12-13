@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using System;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Noobie.SanGuoSha.LocalEventBus;
@@ -14,11 +16,13 @@ namespace Noobie.SanGuoSha.Lobby
         private readonly LobbyHeartbeat _lobbyHeartbeat;
         private readonly PacketsSender _packetsSender;
         private readonly NetworkEventsTracker _networkEventsTracker;
+        private readonly LobbyRequestWrapper _requestWrapper;
         private readonly ILogger _logger;
         private readonly LocalLobbyUser _user;
         private readonly ISubscriber<ClientDisconnectedMessage> _subscriber;
 
         private IDisposable? _subscriptions;
+        private int _requestId;
 
         public LobbyServiceFacade(
             ILogger logger,
@@ -26,8 +30,8 @@ namespace Noobie.SanGuoSha.Lobby
             LobbyHeartbeat lobbyHeartbeat,
             PacketsSender packetsSender,
             ISubscriber<ClientDisconnectedMessage> subscriber,
-            NetworkEventsTracker networkEventsTracker
-            )
+            NetworkEventsTracker networkEventsTracker,
+            LobbyRequestWrapper requestWrapper)
         {
             _logger = logger;
             _user = user;
@@ -35,6 +39,7 @@ namespace Noobie.SanGuoSha.Lobby
             _packetsSender = packetsSender;
             _subscriber = subscriber;
             _networkEventsTracker = networkEventsTracker;
+            _requestWrapper = requestWrapper;
         }
 
         public void Dispose()
@@ -84,26 +89,46 @@ namespace Noobie.SanGuoSha.Lobby
             return false;
         }
 
-        public void Login(string accountName, string password)
+        public async UniTask<LoginResponsePacket> LoginAsync(string accountName, string password, CancellationToken cancellationToken)
         {
             if (!_user.IsOnline)
             {
-                _logger.LogWarning("Client is offline.");
-                return;
+                throw new InvalidOperationException("Client is offline");
             }
 
-            _user.SendAsync(new LoginPacket(accountName, password, Misc.ProtocolVersion));
+            var requestId = GenerateRequestId();
+            var (utcs, linkedSource) = CreateTaskCompletionSource(requestId, cancellationToken);
+            _user.SendAsync(new LoginRequestPacket(requestId, accountName, password, Misc.ProtocolVersion));
+            try
+            {
+                var result = await EnsureResponse<LoginResponsePacket>(utcs);
+                return result;
+            }
+            finally
+            {
+                linkedSource.Dispose();
+            }
         }
 
-        public void Register(string accountName, string nickname, string password)
+        public async UniTask<RegisterResponsePacket> RegisterAsync(string accountName, string nickname, string password, CancellationToken cancellationToken)
         {
             if (!_user.IsOnline)
             {
-                _logger.LogWarning("Client is offline.");
-                return;
+                throw new InvalidOperationException("Client is offline");
             }
 
-            _user.SendAsync(new RegisterPacket(accountName, nickname, password));
+            var requestId = GenerateRequestId();
+            var (utcs, linkedSource) = CreateTaskCompletionSource(requestId, cancellationToken);
+            _user.SendAsync(new RegisterRequestPacket(requestId, accountName, nickname, password));
+            try
+            {
+                var result = await EnsureResponse<RegisterResponsePacket>(utcs);
+                return result;
+            }
+            finally
+            {
+                linkedSource.Dispose();
+            }
         }
 
         public void Disconnect()
@@ -114,6 +139,48 @@ namespace Noobie.SanGuoSha.Lobby
                 client.Close("Disconnect by lobby service");
                 client.Dispose();
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GenerateRequestId()
+        {
+            return Interlocked.Increment(ref _requestId);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static async UniTask<T> EnsureResponse<T>(UniTaskCompletionSource<ILobbyResponsePacket> utcs) where T : ILobbyResponsePacket
+        {
+            var (canceled, response) = await utcs.Task.SuppressCancellationThrow();
+
+            if (canceled)
+            {
+                throw new OperationCanceledException("Request timed out");
+            }
+
+            if (response is not T packet)
+            {
+                throw new Exception("Response type incorrect");
+            }
+
+            return packet;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private (UniTaskCompletionSource<ILobbyResponsePacket>, IDisposable) CreateTaskCompletionSource(int requestId, CancellationToken cancellationToken)
+        {
+            var utcs = new UniTaskCompletionSource<ILobbyResponsePacket>();
+            var timeoutTokenSource = new CancellationTokenSource();
+            timeoutTokenSource.CancelAfterSlim(GetRequestTimeout(), DelayType.Realtime);
+            var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
+            _requestWrapper.Add(requestId, utcs, linked.Token);
+
+            return (utcs, linked);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static TimeSpan GetRequestTimeout()
+        {
+            return TimeSpan.FromSeconds(5);
         }
     }
 }

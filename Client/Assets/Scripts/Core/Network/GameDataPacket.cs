@@ -3,38 +3,29 @@
 namespace Noobie.SanGuoSha.Network
 {
     [MemoryPackable]
-    [MemoryPackUnion(10000, typeof(IGamingPacket))]
-    [MemoryPackUnion(11000, typeof(IGameResponse))]
-    [MemoryPackUnion(11001, typeof(AskForCardUsageResponse))]
-    [MemoryPackUnion(12000, typeof(IGameUpdate))]
-    [MemoryPackUnion(12001, typeof(StatusSync))]
-
-    [MemoryPackUnion(20000, typeof(ILobbyPacket))]
-    [MemoryPackUnion(20001, typeof(LoginPacket))]
-    [MemoryPackUnion(20002, typeof(RegisterPacket))]
-    [MemoryPackUnion(20003, typeof(ChatPacket))]
-    [MemoryPackUnion(20004, typeof(LoginResultPacket))]
-    [MemoryPackUnion(20005, typeof(ServerDisconnectedPacket))]
-    [MemoryPackUnion(20006, typeof(RegisterResultPacket))]
-    [MemoryPackUnion(20007, typeof(PingPacket))]
+    [MemoryPackUnion(0x1000, typeof(IGamingPacket))]
+    [MemoryPackUnion(0x1100, typeof(IGameResponse))]
+    [MemoryPackUnion(0x1101, typeof(AskForCardUsageResponse))]
+    [MemoryPackUnion(0x1200, typeof(IGameUpdate))]
+    [MemoryPackUnion(0x1201, typeof(StatusSync))]
     public partial interface IGameDataPacket
     {
 
     }
 
     [MemoryPackable]
-    [MemoryPackUnion(11000, typeof(IGameResponse))]
-    [MemoryPackUnion(11001, typeof(AskForCardUsageResponse))]
+    [MemoryPackUnion(0x1100, typeof(IGameResponse))]
+    [MemoryPackUnion(0x1101, typeof(AskForCardUsageResponse))]
 
-    [MemoryPackUnion(12000, typeof(IGameUpdate))]
-    [MemoryPackUnion(12001, typeof(StatusSync))]
+    [MemoryPackUnion(0x1200, typeof(IGameUpdate))]
+    [MemoryPackUnion(0x1201, typeof(StatusSync))]
     public partial interface IGamingPacket : IGameDataPacket
     {
         float Timestamp { get; init; }
     }
 
     [MemoryPackable]
-    [MemoryPackUnion(11001, typeof(AskForCardUsageResponse))]
+    [MemoryPackUnion(0x1101, typeof(AskForCardUsageResponse))]
     public partial interface IGameResponse : IGamingPacket
     {
         int Id { get; init; }
@@ -44,7 +35,7 @@ namespace Noobie.SanGuoSha.Network
     public sealed partial record AskForCardUsageResponse(int Id, float Timestamp) : IGameResponse;
 
     [MemoryPackable]
-    [MemoryPackUnion(12001, typeof(StatusSync))]
+    [MemoryPackUnion(0x1201, typeof(StatusSync))]
     public partial interface IGameUpdate : IGamingPacket
     {
 

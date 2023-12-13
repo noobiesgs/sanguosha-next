@@ -4,16 +4,16 @@ using Noobie.SanGuoSha.Network;
 
 namespace Noobie.SanGuoSha.Lobby.MessageHandlers;
 
-[RegisterTransient<IMessageHandler>(Key = nameof(RegisterPacket))]
-internal class RegisterMessageHandler : MessageHandlerBase<RegisterPacket>
+[RegisterTransient<IMessageHandler>(Key = nameof(RegisterRequestPacket))]
+internal class RegisterMessageHandler : MessageHandlerBase<RegisterRequestPacket>
 {
-    public RegisterMessageHandler(LobbyService lobbyService, ILogger<MessageHandlerBase<RegisterPacket>> logger) : base(lobbyService, logger)
+    public RegisterMessageHandler(LobbyService lobbyService, ILogger<MessageHandlerBase<RegisterRequestPacket>> logger) : base(lobbyService, logger)
     {
     }
 
-    protected override void Handle(SanGuoShaTcpClient connection, RegisterPacket packet)
+    protected override void Handle(SanGuoShaTcpClient connection, RegisterRequestPacket packet)
     {
-        connection.SendAsync(new RegisterResultPacket(LobbyService.Register(packet.AccountName, packet.Nickname, packet.Password)));
+        connection.SendAsync(new RegisterResponsePacket(packet.RequestId, LobbyService.Register(packet.AccountName, packet.Nickname, packet.Password)));
     }
 
     protected override bool ConnectionAuthentication(SanGuoShaTcpClient connection)

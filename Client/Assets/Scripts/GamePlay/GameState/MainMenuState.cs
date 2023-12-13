@@ -1,10 +1,10 @@
 ﻿#nullable enable
 
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Noobie.SanGuoSha.GamePlay.UI;
 using Noobie.SanGuoSha.Lobby;
-using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,13 +19,12 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         [Inject] private LobbyServiceFacade _lobbyService;
         [Inject] private ILogger _logger;
         [Inject] private LocalLobbyUser _user;
-        [Inject] private ISubscriber<LobbyPacketReceivedMessage> _subscriber;
         [Inject] private PopupManager _popupManager;
 
         [SerializeField] private LoginUI _loginUI;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        private IDisposable? _subscription;
+        private CancellationToken _cancellationToken;
 
         public override GameState ActiveState => GameState.MainMenu;
 
@@ -34,7 +33,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             base.Awake();
             _loginUI.LoginButtonClicked += LoginUIOnLoginButtonClicked;
             _loginUI.Register += LoginUIOnRegister;
-            _subscription = _subscriber.Subscribe(OnReceivedLobbyPacket);
+            _cancellationToken = this.GetCancellationTokenOnDestroy();
         }
 
         protected override void OnDestroy()
@@ -42,7 +41,6 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             base.OnDestroy();
             _loginUI.LoginButtonClicked -= LoginUIOnLoginButtonClicked;
             _loginUI.Register -= LoginUIOnRegister;
-            _subscription?.Dispose();
             _logger.LogInformation("MainMenuState destroyed");
         }
 
@@ -64,57 +62,9 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 return;
             }
 
-            _lobbyService.Register(accountName, nickname, password);
-        }
+            var response = await _lobbyService.RegisterAsync(accountName, nickname, password, _cancellationToken);
 
-        private async UniTaskVoid LoginAsync(string serverHost, int serverPort, string accountName, string password)
-        {
-            var success = await EnsureConnectedToServerAsync(serverHost, serverPort);
-            if (!success)
-            {
-                return;
-            }
-
-            _lobbyService.Login(accountName, password);
-        }
-
-        private async UniTask<bool> EnsureConnectedToServerAsync(string serverHost, int serverPort)
-        {
-            if (_user.IsOnline)
-            {
-                return true;
-            }
-            var success = await _lobbyService.ConnectAsync(serverHost, serverPort);
-            if (success)
-            {
-                _logger.LogInformation("Connected to server");
-                return true;
-            }
-
-            _logger.LogInformation("failed to connect to server");
-            _popupManager.ShowPopupPanel("服务器连接失败");
-            return false;
-        }
-
-        private void OnReceivedLobbyPacket(LobbyPacketReceivedMessage lobbyPacketMessage)
-        {
-            switch (lobbyPacketMessage.Packet)
-            {
-                case LoginResultPacket p:
-                    HandleLoginResult(p);
-                    break;
-                case RegisterResultPacket p:
-                    HandleRegisterResult(p);
-                    break;
-                default:
-                    _logger.LogWarning("Unhandled packet: {0}", lobbyPacketMessage.Packet.GetType().Name);
-                    break;
-            }
-        }
-
-        private void HandleRegisterResult(RegisterResultPacket result)
-        {
-            switch (result.Status)
+            switch (response.Status)
             {
                 case RegistrationStatus.Success:
                     _loginUI.BackfillRegisterAccountName();
@@ -135,13 +85,21 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             }
         }
 
-        private void HandleLoginResult(LoginResultPacket result)
+        private async UniTaskVoid LoginAsync(string serverHost, int serverPort, string accountName, string password)
         {
-            switch (result.Status)
+            var success = await EnsureConnectedToServerAsync(serverHost, serverPort);
+            if (!success)
+            {
+                return;
+            }
+
+            var response = await _lobbyService.LoginAsync(accountName, password, _cancellationToken);
+
+            switch (response.Status)
             {
                 case LoginStatus.Success:
-                    _user.Account.Update(result.Account);
-                    _user.LoginToken = result.Token;
+                    _user.Account.Update(response.Account);
+                    _user.LoginToken = response.Token;
                     _loginUI.SaveAccountInfoToGameSettings();
                     SceneManager.LoadScene("Lobby");
                     break;
@@ -157,6 +115,24 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private async UniTask<bool> EnsureConnectedToServerAsync(string serverHost, int serverPort)
+        {
+            if (_user.IsOnline)
+            {
+                return true;
+            }
+            var success = await _lobbyService.ConnectAsync(serverHost, serverPort);
+            if (success)
+            {
+                _logger.LogInformation("Connected to server");
+                return true;
+            }
+
+            _logger.LogInformation("failed to connect to server");
+            _popupManager.ShowPopupPanel("服务器连接失败");
+            return false;
         }
     }
 }

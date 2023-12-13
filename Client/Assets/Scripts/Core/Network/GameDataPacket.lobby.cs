@@ -4,50 +4,96 @@ using MemoryPack;
 
 namespace Noobie.SanGuoSha.Network
 {
-    [MemoryPackable]
-    [MemoryPackUnion(20001, typeof(LoginPacket))]
-    [MemoryPackUnion(20002, typeof(RegisterPacket))]
-    [MemoryPackUnion(20003, typeof(ChatPacket))]
-    [MemoryPackUnion(20004, typeof(LoginResultPacket))]
-    [MemoryPackUnion(20005, typeof(ServerDisconnectedPacket))]
-    [MemoryPackUnion(20006, typeof(RegisterResultPacket))]
-    [MemoryPackUnion(20007, typeof(PingPacket))]
-    public partial interface ILobbyPacket : IGameDataPacket
+    [MemoryPackUnion(0x2000, typeof(ILobbyPacket))]
+    [MemoryPackUnion(0x2100, typeof(ILobbyRequestPacket))]
+    [MemoryPackUnion(0x2101, typeof(LoginRequestPacket))]
+    [MemoryPackUnion(0x2102, typeof(RegisterRequestPacket))]
+    [MemoryPackUnion(0x2200, typeof(ILobbyResponsePacket))]
+    [MemoryPackUnion(0x2201, typeof(LoginResponsePacket))]
+    [MemoryPackUnion(0x2202, typeof(RegisterResponsePacket))]
+    [MemoryPackUnion(0x2300, typeof(ILobbyMessagePacket))]
+    [MemoryPackUnion(0x2301, typeof(ChatPacket))]
+    [MemoryPackUnion(0x2302, typeof(ServerDisconnectedPacket))]
+    [MemoryPackUnion(0x2303, typeof(PingPacket))]
+    public partial interface IGameDataPacket
     {
 
     }
 
     [MemoryPackable]
-    public sealed partial record LoginPacket(string AccountName, string Password, int ProtocolVersion) : ILobbyPacket;
+    [MemoryPackUnion(0x2100, typeof(ILobbyRequestPacket))]
+    [MemoryPackUnion(0x2101, typeof(LoginRequestPacket))]
+    [MemoryPackUnion(0x2102, typeof(RegisterRequestPacket))]
+    [MemoryPackUnion(0x2200, typeof(ILobbyResponsePacket))]
+    [MemoryPackUnion(0x2201, typeof(LoginResponsePacket))]
+    [MemoryPackUnion(0x2202, typeof(RegisterResponsePacket))]
+    [MemoryPackUnion(0x2300, typeof(ILobbyMessagePacket))]
+    [MemoryPackUnion(0x2301, typeof(ChatPacket))]
+    [MemoryPackUnion(0x2302, typeof(ServerDisconnectedPacket))]
+    [MemoryPackUnion(0x2303, typeof(PingPacket))]
+    public partial interface ILobbyPacket : IGameDataPacket
+    {
+    }
 
     [MemoryPackable]
-    public sealed partial record RegisterPacket(string AccountName, string Nickname, string Password) : ILobbyPacket;
+    [MemoryPackUnion(0x2101, typeof(LoginRequestPacket))]
+    [MemoryPackUnion(0x2102, typeof(RegisterRequestPacket))]
+    public partial interface ILobbyRequestPacket : ILobbyPacket
+    {
+        int RequestId { get; init; }
+    }
 
     [MemoryPackable]
-    public sealed partial record RegisterResultPacket(RegistrationStatus Status) : ILobbyPacket;
+    [MemoryPackUnion(0x2201, typeof(LoginResponsePacket))]
+    [MemoryPackUnion(0x2202, typeof(RegisterResponsePacket))]
+    public partial interface ILobbyResponsePacket : ILobbyPacket
+    {
+        int ResponseId { get; init; }
+    }
 
     [MemoryPackable]
-    public sealed partial record ChatPacket(string Message) : ILobbyPacket;
+    [MemoryPackUnion(0x2301, typeof(ChatPacket))]
+    [MemoryPackUnion(0x2302, typeof(ServerDisconnectedPacket))]
+    [MemoryPackUnion(0x2303, typeof(PingPacket))]
+    public partial interface ILobbyMessagePacket : ILobbyPacket
+    {
+
+    }
 
     [MemoryPackable]
-    public sealed partial record LoginResultPacket : ILobbyPacket
+    public sealed partial record LoginRequestPacket(int RequestId, string AccountName, string Password, int ProtocolVersion) : ILobbyRequestPacket;
+
+    [MemoryPackable]
+    public sealed partial record RegisterRequestPacket(int RequestId, string AccountName, string Nickname, string Password) : ILobbyRequestPacket;
+
+    [MemoryPackable]
+    public sealed partial record RegisterResponsePacket(int ResponseId, RegistrationStatus Status) : ILobbyResponsePacket;
+
+    [MemoryPackable]
+    public sealed partial record LoginResponsePacket : ILobbyResponsePacket
     {
         [MemoryPackConstructor]
-        public LoginResultPacket(LoginStatus status, AccountPacket account, LoginToken token)
+        public LoginResponsePacket(int responseId, LoginStatus status, AccountPacket account, LoginToken token)
         {
             Status = status;
             Account = account;
             Token = token;
+            ResponseId = responseId;
         }
 
-        public LoginResultPacket(LoginStatus status)
+        public LoginResponsePacket(int responseId, LoginStatus status)
         {
             Status = status;
+            ResponseId = responseId;
         }
 
         public LoginStatus Status { get; init; }
+
         public AccountPacket? Account { get; init; }
+
         public LoginToken Token { get; init; }
+
+        public int ResponseId { get; init; }
 
         public void Deconstruct(out LoginStatus status, out AccountPacket? account, out LoginToken token)
         {
@@ -58,7 +104,13 @@ namespace Noobie.SanGuoSha.Network
     }
 
     [MemoryPackable]
-    public sealed partial record PingPacket : ILobbyPacket;
+    public sealed partial record ChatPacket(string Message) : ILobbyMessagePacket;
+
+    [MemoryPackable]
+    public sealed partial record PingPacket : ILobbyMessagePacket;
+
+    [MemoryPackable]
+    public sealed partial record ServerDisconnectedPacket(DisconnectReason Reason) : ILobbyMessagePacket;
 
     [MemoryPackable]
     public sealed partial record AccountPacket(string Nickname, string Title, int Wins, int Losses, int Escapes, AvatarShowPacket AvatarShow)
@@ -76,9 +128,6 @@ namespace Noobie.SanGuoSha.Network
 
         public Guid TokenString { get; init; }
     }
-
-    [MemoryPackable]
-    public sealed partial record ServerDisconnectedPacket(DisconnectReason Reason) : ILobbyPacket;
 
     public enum DisconnectReason
     {

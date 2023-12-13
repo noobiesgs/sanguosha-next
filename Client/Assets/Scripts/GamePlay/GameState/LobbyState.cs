@@ -14,7 +14,6 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         [Inject] private LobbyServiceFacade _lobbyService;
         [Inject] private ILogger _logger;
         [Inject] private LocalLobbyUser _user;
-        [Inject] private ISubscriber<LobbyPacketReceivedMessage> _lobbyPacketSubscriber;
         [Inject] private ISubscriber<ClientDisconnectedMessage> _clientDisconnectedSubscriber;
         [Inject] private PopupManager _popupManager;
 
@@ -29,19 +28,12 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             base.Awake();
             var subscription = _clientDisconnectedSubscriber.Subscribe(OnClientDisconnected);
             _disposableGroup.Add(subscription);
-            subscription = _lobbyPacketSubscriber.Subscribe(OnLobbyPacketReceived);
-            _disposableGroup.Add(subscription);
         }
 
         protected override void OnDestroy()
         {
             _disposableGroup.Dispose();
             base.OnDestroy();
-        }
-
-        private void OnLobbyPacketReceived(LobbyPacketReceivedMessage obj)
-        {
-
         }
 
         private void OnClientDisconnected(ClientDisconnectedMessage obj)

@@ -10,23 +10,26 @@ namespace Noobie.SanGuoSha.Lobby
     {
         private readonly UpdateRunner _updateRunner;
         private readonly ILogger _logger;
-        private readonly IPublisher<LobbyPacketReceivedMessage> _lobbyMessagePublisher;
+        private readonly IPublisher<LobbyMessage> _lobbyMessagePublisher;
+        private readonly LobbyRequestWrapper _lobbyRequestWrapper;
         private readonly IPublisher<ClientDisconnectedMessage> _clientDisconnectedMessagePublisher;
 
         private readonly LocalLobbyUser _user;
 
         public NetworkEventsTracker(
             UpdateRunner updateRunner,
-            IPublisher<LobbyPacketReceivedMessage> lobbyMessagePublisher,
+            IPublisher<LobbyMessage> lobbyMessagePublisher,
             ILogger logger,
             LocalLobbyUser user,
-            IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher)
+            IPublisher<ClientDisconnectedMessage> clientDisconnectedMessagePublisher,
+            LobbyRequestWrapper lobbyRequestWrapper)
         {
             _updateRunner = updateRunner;
             _lobbyMessagePublisher = lobbyMessagePublisher;
             _logger = logger;
             _user = user;
             _clientDisconnectedMessagePublisher = clientDisconnectedMessagePublisher;
+            _lobbyRequestWrapper = lobbyRequestWrapper;
         }
 
         public void BeginTracking()
@@ -37,6 +40,7 @@ namespace Noobie.SanGuoSha.Lobby
         public void EndTracking()
         {
             _updateRunner.Unsubscribe(OnUpdate);
+            _lobbyRequestWrapper.Clear();
         }
 
         private void OnUpdate(float _)
@@ -47,8 +51,11 @@ namespace Noobie.SanGuoSha.Lobby
                 {
                     switch (packet)
                     {
-                        case ILobbyPacket p:
-                            _lobbyMessagePublisher.Publish(new LobbyPacketReceivedMessage(p));
+                        case ILobbyMessagePacket p:
+                            _lobbyMessagePublisher.Publish(new LobbyMessage(p));
+                            break;
+                        case ILobbyResponsePacket p:
+                            _lobbyRequestWrapper.Response(p);
                             break;
                         default:
                             _logger.LogWarning("Unhandled packet, type: {0}", packet.GetType().Name);
