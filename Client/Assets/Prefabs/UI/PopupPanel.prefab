@@ -424,6 +424,9 @@ MonoBehaviour:
   _confirmButton: {fileID: 5761537871305796301}
   _loadingSpinner: {fileID: 2721612277158748369}
   _canvasGroup: {fileID: 8061288777513856145}
+  _localizedStringTable:
+    m_TableReference:
+      m_TableCollectionName: GUID:0dfbb807f1a08684e81b839c2660f05f
 --- !u!222 &6116143679600671495
 CanvasRenderer:
   m_ObjectHideFlags: 0

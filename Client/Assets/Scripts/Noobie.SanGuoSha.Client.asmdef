@@ -11,7 +11,8 @@
         "TouchSocketSlim",
         "AllPlatformsSave",
         "Unity.TextMeshPro",
-        "UniTask.DOTween"
+        "UniTask.DOTween",
+        "Unity.Localization"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

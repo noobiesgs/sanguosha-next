@@ -110,10 +110,10 @@ namespace Noobie.SanGuoSha.Lobby
 
             var requestId = GenerateRequestId();
             var (utcs, disposable) = CreateTaskCompletionSource(requestId, cancellationToken);
-            _user.SendAsync(requestFactory(requestId));
 
             try
             {
+                _user.SendAsync(requestFactory(requestId));
                 var result = await EnsureResponse<TResponse>(utcs);
                 return result;
             }

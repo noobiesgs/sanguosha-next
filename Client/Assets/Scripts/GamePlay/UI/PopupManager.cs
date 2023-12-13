@@ -18,12 +18,12 @@ namespace Noobie.SanGuoSha.GamePlay.UI
             DontDestroyOnLoad(_canvas);
         }
 
-        public PopupPanel ShowPopupPanel(string mainText, bool closableByUser = true)
+        public PopupPanel ShowPopupPanel(string mainTextKey, bool closableByUser = true)
         {
             var popup = GetNextAvailablePopupPanel();
             if (popup != null)
             {
-                popup.SetupPopupPanel(mainText, closableByUser);
+                popup.SetupPopupPanel(mainTextKey, closableByUser);
             }
 
             return popup;

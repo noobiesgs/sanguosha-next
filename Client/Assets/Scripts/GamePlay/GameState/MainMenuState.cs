@@ -65,16 +65,16 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 case RegistrationStatus.Success:
                     _loginUI.BackfillRegisterAccountName();
                     _loginUI.SaveAccountInfoToGameSettings();
-                    _popupManager.ShowPopupPanel("注册成功");
+                    _popupManager.ShowPopupPanel("RegistrationSuccess");
                     break;
                 case RegistrationStatus.Invalid:
-                    _popupManager.ShowPopupPanel("无效注册信息");
+                    _popupManager.ShowPopupPanel("InvalidRegistrationInformation");
                     break;
                 case RegistrationStatus.AccountAlreadyExists:
-                    _popupManager.ShowPopupPanel("账号已存在");
+                    _popupManager.ShowPopupPanel("AccountAlreadyExists");
                     break;
                 case RegistrationStatus.NicknameAlreadyExists:
-                    _popupManager.ShowPopupPanel("昵称已存在");
+                    _popupManager.ShowPopupPanel("NicknameAlreadyExists");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -100,13 +100,13 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                     SceneManager.LoadScene("Lobby");
                     break;
                 case LoginStatus.OutdatedVersion:
-                    _popupManager.ShowPopupPanel("客户端版本与服务器不匹配，请更新");
+                    _popupManager.ShowPopupPanel("ClientVersionOutdated");
                     break;
                 case LoginStatus.InvalidUserNameAndPassword:
-                    _popupManager.ShowPopupPanel("无效用户名或密码");
+                    _popupManager.ShowPopupPanel("InvalidUserNameAndPassword");
                     break;
                 case LoginStatus.UnknownFailure:
-                    _popupManager.ShowPopupPanel("登录失败，未知错误");
+                    _popupManager.ShowPopupPanel("LoginUnknownFailure");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -127,7 +127,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             }
 
             _logger.LogInformation("failed to connect to server");
-            _popupManager.ShowPopupPanel("服务器连接失败");
+            _popupManager.ShowPopupPanel("FailedToConnectServer");
             return false;
         }
     }
