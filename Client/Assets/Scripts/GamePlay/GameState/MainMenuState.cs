@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using System;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using Noobie.SanGuoSha.GamePlay.UI;
 using Noobie.SanGuoSha.Lobby;
@@ -24,8 +23,6 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
         [SerializeField] private LoginUI _loginUI;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        private CancellationToken _cancellationToken;
-
         public override GameState ActiveState => GameState.MainMenu;
 
         protected override void Awake()
@@ -33,7 +30,6 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
             base.Awake();
             _loginUI.LoginButtonClicked += LoginUIOnLoginButtonClicked;
             _loginUI.Register += LoginUIOnRegister;
-            _cancellationToken = this.GetCancellationTokenOnDestroy();
         }
 
         protected override void OnDestroy()
@@ -62,7 +58,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 return;
             }
 
-            var response = await _lobbyService.RegisterAsync(accountName, nickname, password, _cancellationToken);
+            var response = await _lobbyService.RegisterAsync(accountName, nickname, password, destroyCancellationToken);
 
             switch (response.Status)
             {
@@ -93,7 +89,7 @@ namespace Noobie.SanGuoSha.GamePlay.GameState
                 return;
             }
 
-            var response = await _lobbyService.LoginAsync(accountName, password, _cancellationToken);
+            var response = await _lobbyService.LoginAsync(accountName, password, destroyCancellationToken);
 
             switch (response.Status)
             {

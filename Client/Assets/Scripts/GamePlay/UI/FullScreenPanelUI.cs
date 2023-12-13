@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using System.Threading;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,13 +17,6 @@ namespace Noobie.SanGuoSha.GamePlay.UI
         private CanvasGroup _containerCanvasGroup;
 
         private bool _inAnimation;
-
-        private CancellationToken _cancellationToken;
-
-        private void Awake()
-        {
-            _cancellationToken = this.GetCancellationTokenOnDestroy();
-        }
 
         public void Show()
         {
@@ -51,8 +43,8 @@ namespace Noobie.SanGuoSha.GamePlay.UI
                 return;
             }
             _inAnimation = true;
-            _containerCanvasGroup.DOFade(0f, 0.3f).AwaitForComplete(cancellationToken: _cancellationToken).SuppressCancellationThrow().Forget();
-            var canceled = await _containerTransform.DOLocalMoveY(-100f, 0.3f).AwaitForComplete(cancellationToken: _cancellationToken).SuppressCancellationThrow();
+            _containerCanvasGroup.DOFade(0f, 0.3f).AwaitForComplete(cancellationToken: destroyCancellationToken).SuppressCancellationThrow().Forget();
+            var canceled = await _containerTransform.DOLocalMoveY(-100f, 0.3f).AwaitForComplete(cancellationToken: destroyCancellationToken).SuppressCancellationThrow();
             if (!canceled)
             {
                 _rootCanvasGroup.alpha = 0;
