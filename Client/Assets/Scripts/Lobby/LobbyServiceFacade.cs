@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Noobie.SanGuoSha.Infrastructure;
 using Noobie.SanGuoSha.LocalEventBus;
 using Noobie.SanGuoSha.Network;
 using VContainer.Unity;
@@ -108,7 +109,7 @@ namespace Noobie.SanGuoSha.Lobby
             }
 
             var requestId = GenerateRequestId();
-            var (utcs, linkedSource) = CreateTaskCompletionSource(requestId, cancellationToken);
+            var (utcs, disposable) = CreateTaskCompletionSource(requestId, cancellationToken);
             _user.SendAsync(requestFactory(requestId));
 
             try
@@ -118,7 +119,7 @@ namespace Noobie.SanGuoSha.Lobby
             }
             finally
             {
-                linkedSource.Dispose();
+                disposable.Dispose();
             }
         }
 
@@ -161,11 +162,16 @@ namespace Noobie.SanGuoSha.Lobby
         {
             var utcs = new UniTaskCompletionSource<ILobbyResponsePacket>();
             var timeoutTokenSource = new CancellationTokenSource();
-            timeoutTokenSource.CancelAfterSlim(GetRequestTimeout(), DelayType.Realtime);
+            var timer = timeoutTokenSource.CancelAfterSlim(GetRequestTimeout(), DelayType.Realtime);
             var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
             _requestWrapper.Add(requestId, utcs, linked.Token);
 
-            return (utcs, linked);
+            var disposableGroup = new DisposableGroup();
+            disposableGroup.Add(timer);
+            disposableGroup.Add(timeoutTokenSource);
+            disposableGroup.Add(linked);
+
+            return (utcs, disposableGroup);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
