@@ -89,28 +89,18 @@ namespace Noobie.SanGuoSha.Lobby
             return false;
         }
 
-        public async UniTask<LoginResponsePacket> LoginAsync(string accountName, string password, CancellationToken cancellationToken)
+        public UniTask<LoginResponsePacket> LoginAsync(string accountName, string password, CancellationToken cancellationToken)
         {
-            if (!_user.IsOnline)
-            {
-                throw new InvalidOperationException("Client is offline");
-            }
-
-            var requestId = GenerateRequestId();
-            var (utcs, linkedSource) = CreateTaskCompletionSource(requestId, cancellationToken);
-            _user.SendAsync(new LoginRequestPacket(requestId, accountName, password, Misc.ProtocolVersion));
-            try
-            {
-                var result = await EnsureResponse<LoginResponsePacket>(utcs);
-                return result;
-            }
-            finally
-            {
-                linkedSource.Dispose();
-            }
+            return SendAsync<LoginResponsePacket>(requestId => new LoginRequestPacket(requestId, accountName, password, Misc.ProtocolVersion), cancellationToken);
         }
 
-        public async UniTask<RegisterResponsePacket> RegisterAsync(string accountName, string nickname, string password, CancellationToken cancellationToken)
+        public UniTask<RegisterResponsePacket> RegisterAsync(string accountName, string nickname, string password, CancellationToken cancellationToken)
+        {
+            return SendAsync<RegisterResponsePacket>(requestId => new RegisterRequestPacket(requestId, accountName, nickname, password), cancellationToken);
+        }
+
+        private async UniTask<TResponse> SendAsync<TResponse>(Func<int, IGameDataPacket> requestFactory, CancellationToken cancellationToken)
+            where TResponse : ILobbyResponsePacket
         {
             if (!_user.IsOnline)
             {
@@ -119,10 +109,11 @@ namespace Noobie.SanGuoSha.Lobby
 
             var requestId = GenerateRequestId();
             var (utcs, linkedSource) = CreateTaskCompletionSource(requestId, cancellationToken);
-            _user.SendAsync(new RegisterRequestPacket(requestId, accountName, nickname, password));
+            _user.SendAsync(requestFactory(requestId));
+
             try
             {
-                var result = await EnsureResponse<RegisterResponsePacket>(utcs);
+                var result = await EnsureResponse<TResponse>(utcs);
                 return result;
             }
             finally
