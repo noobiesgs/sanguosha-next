@@ -34,7 +34,6 @@ namespace Noobie.SanGuoSha.Lobby
                 {
                     _connection.Disconnected -= ConnectionOnDisconnected;
                     _connection.ReceivePacket -= ConnectionOnReceivePacket;
-                    _connection.Dispose();
                 }
                 _connection = value;
                 if (_connection != null)
